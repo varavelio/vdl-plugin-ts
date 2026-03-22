@@ -4,7 +4,7 @@ import { createGeneratorContext } from "../../model/build-context";
 import { generateConstantsFile } from "./constants";
 
 describe("generateConstantsFile", () => {
-  it("renders constants with inferred and referenced types", () => {
+  it("renders constants with inferred TypeScript types", () => {
     const result = createGeneratorContext({
       input: irb.pluginInput({
         ir: irb.schema({
@@ -34,15 +34,11 @@ describe("generateConstantsFile", () => {
 
     const file = generateConstantsFile(expectContext(result.context));
 
-    expect(file?.content).toContain(
-      'export const apiVersion: string = "1.0.0";',
-    );
-    expect(file?.content).toContain(
+    expect(file?.content).toContain('export const apiVersion = "1.0.0";');
+    expect(file?.content).not.toContain(
       'import type { Status } from "./enums.ts";',
     );
-    expect(file?.content).toContain(
-      'export const defaultStatus: Status = "active";',
-    );
+    expect(file?.content).toContain('export const defaultStatus = "active";');
   });
 });
 
