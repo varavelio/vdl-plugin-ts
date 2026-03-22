@@ -27,9 +27,25 @@ export function getDeprecatedMessage(
 }
 
 /**
+ * Writes a JSDoc block from documentation text, fallback text, and
+ * deprecation annotations.
+ */
+export function writeDocComment(
+  g: Generator,
+  options: {
+    doc?: string;
+    annotations?: Annotation[];
+    fallback?: string;
+  },
+): void {
+  const lines = buildDocCommentLines(options);
+  writeDocCommentLines(g, lines);
+}
+
+/**
  * Builds JSDoc lines from documentation text and annotations.
  */
-export function buildDocCommentLines(options: {
+function buildDocCommentLines(options: {
   doc?: string;
   annotations?: Annotation[];
   fallback?: string;
@@ -46,7 +62,7 @@ export function buildDocCommentLines(options: {
 /**
  * Writes a JSDoc block when at least one line is available.
  */
-export function writeDocComment(g: Generator, lines: string[]): void {
+function writeDocCommentLines(g: Generator, lines: string[]): void {
   if (lines.length === 0) return;
 
   g.line("/**");
