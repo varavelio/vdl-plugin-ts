@@ -1,9 +1,6 @@
 import { newGenerator } from "@varavel/gen";
 import type { PluginOutputFile } from "@varavel/vdl-plugin-sdk";
-import {
-  buildDocCommentLines,
-  writeDocComment,
-} from "../../../shared/comments";
+import { writeDocComment } from "../../../shared/comments";
 import { renderTypeScriptFile } from "../../../shared/render-ts-file";
 import { renderLiteralValueExpression } from "../../../shared/ts-literals";
 import type { GeneratorContext } from "../../model/types";
@@ -25,14 +22,11 @@ export function generateConstantsFile(
       continue;
     }
 
-    writeDocComment(
-      g,
-      buildDocCommentLines({
-        doc: constant.def.doc,
-        annotations: constant.def.annotations,
-        fallback: `${constant.def.name} holds a generated VDL constant.`,
-      }),
-    );
+    writeDocComment(g, {
+      doc: constant.def.doc,
+      annotations: constant.def.annotations,
+      fallback: `${constant.def.name} holds a generated VDL constant.`,
+    });
     g.line(
       `export const ${constant.def.name} = ${renderLiteralValueExpression(constant.typeRef, constant.def.value, context)};`,
     );
