@@ -13,5 +13,5 @@ export function renderTypeScriptFile(body: string): string {
     g.break();
   }
 
-  return `${strings.limitBlankLines(g.toString(), 1)}\n`;
+  return strings.limitBlankLines(g.toString(), 1);
 }
