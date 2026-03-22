@@ -4,7 +4,7 @@ import { createGeneratorContext } from "../../model/build-context";
 import { generateEnumsFile } from "./enums";
 
 describe("generateEnumsFile", () => {
-  it("renders enum unions and runtime helpers", () => {
+  it("renders merged enum namespaces with values and helpers", () => {
     const result = createGeneratorContext({
       input: irb.pluginInput({
         ir: irb.schema({
@@ -26,11 +26,12 @@ describe("generateEnumsFile", () => {
     const file = generateEnumsFile(expectContext(result.context));
 
     expect(file?.content).toContain("export type Priority = 1 | 2;");
-    expect(file?.content).toContain("export function validatePriority");
-    expect(file?.content).toContain("export function fromPriorityString");
-    expect(file?.content).not.toContain("export function fromPriorityUnknown");
-    expect(file?.content).not.toContain("export const PriorityCodec");
-    expect(file?.content).not.toContain("export function isPriority");
+    expect(file?.content).toContain("export const Priority = {");
+    expect(file?.content).toContain("Low: 1 as Priority,");
+    expect(file?.content).toContain("values(): Priority[] {");
+    expect(file?.content).toContain("parse(json: string): Priority {");
+    expect(file?.content).toContain("const error = Priority.validate(input);");
+    expect(file?.content).not.toContain("export function validatePriority");
   });
 });
 

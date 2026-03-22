@@ -1,14 +1,12 @@
 import { newGenerator } from "@varavel/gen";
 import type { EnumDef, PluginOutputFile } from "@varavel/vdl-plugin-sdk";
-import {
-  buildDocCommentLines,
-  writeDocComment,
-} from "../../../shared/comments";
+import { writeDocComment } from "../../../shared/comments";
+import { renderPropertyName } from "../../../shared/naming";
 import { renderTypeScriptFile } from "../../../shared/render-ts-file";
 import type { GeneratorContext } from "../../model/types";
 
 /**
- * Emits the `enums.ts` module containing generated enum unions and runtime
+ * Emits the `enums.ts` module containing generated enum namespaces and runtime
  * helpers.
  */
 export function generateEnumsFile(
@@ -41,17 +39,14 @@ function renderEnum(
   enumDef: EnumDef,
 ): void {
   /**
-   * Each enum emits its full public API in one contiguous block so generated
-   * output reads top-to-bottom without jumping between helpers.
+   * Each enum is emitted as a merged type plus const namespace so consumers get
+   * a compact surface with predictable IntelliSense.
    */
-  writeDocComment(
-    g,
-    buildDocCommentLines({
-      doc: enumDef.doc,
-      annotations: enumDef.annotations,
-      fallback: `${enumDef.name} declares a generated VDL enum.`,
-    }),
-  );
+  writeDocComment(g, {
+    doc: enumDef.doc,
+    annotations: enumDef.annotations,
+    fallback: `${enumDef.name} declares a generated VDL enum.`,
+  });
 
   if (enumDef.members.length === 0) {
     g.line(`export type ${enumDef.name} = never;`);
@@ -65,59 +60,122 @@ function renderEnum(
   g.break();
 
   g.line(
-    `const ${enumDef.name}Values = [${enumDef.members
+    `const ${enumDef.name}Values: ${enumDef.name}[] = [${enumDef.members
       .map((member) => renderEnumMemberLiteral(member.value))
-      .join(", ")}] as const;`,
+      .join(", ")}];`,
   );
   g.break();
 
-  g.line(
-    `export function hydrate${enumDef.name}(input: ${enumDef.name}): ${enumDef.name} {`,
-  );
-  g.block(() => {
-    g.line("return input;");
+  writeDocComment(g, {
+    fallback: `${enumDef.name} exposes the generated enum values and runtime helpers for ${enumDef.name}.`,
   });
-  g.line("}");
-  g.break();
-
-  g.line(
-    `export function validate${enumDef.name}(input: unknown, path = ${JSON.stringify(enumDef.name)}): string | null {`,
-  );
+  g.line(`export const ${enumDef.name} = {`);
   g.block(() => {
-    g.line(`if (!${enumDef.name}Values.includes(input as ${enumDef.name})) {`);
+    renderEnumMembers(g, enumDef);
+
+    if (enumDef.members.length > 0) {
+      g.break();
+    }
+
+    writeDocComment(g, {
+      fallback: `Returns every declared ${enumDef.name} value in definition order.`,
+    });
+    g.line(`values(): ${enumDef.name}[] {`);
+    g.block(() => {
+      g.line(`return [...${enumDef.name}Values];`);
+    });
+    g.line("},");
+    g.break();
+
+    writeDocComment(g, {
+      fallback: `Parses a JSON string into a validated and hydrated ${enumDef.name} value.`,
+    });
+    g.line(`parse(json: string): ${enumDef.name} {`);
+    g.block(() => {
+      g.line("const input = parseJson(json);");
+      g.line(`const error = ${enumDef.name}.validate(input);`);
+      g.line("if (error !== null) {");
+      g.block(() => {
+        g.line("throw new Error(error);");
+      });
+      g.line("}");
+      g.line(`return ${enumDef.name}.hydrate(input as ${enumDef.name});`);
+    });
+    g.line("},");
+    g.break();
+
+    writeDocComment(g, {
+      fallback: `Validates unknown input against the ${enumDef.name} enum values.`,
+    });
+    g.line(
+      `validate(input: unknown, path = ${JSON.stringify(enumDef.name)}): string | null {`,
+    );
     g.block(() => {
       g.line(
-        `return \`\${path}: invalid enum value '\${String(input)}' for ${enumDef.name}\`;`,
+        `if (!${enumDef.name}Values.includes(input as ${enumDef.name})) {`,
       );
+      g.block(() => {
+        g.line(
+          `return \`\${path}: invalid enum value '\${String(input)}' for ${enumDef.name}\`;`,
+        );
+      });
+      g.line("}");
+      g.line("return null;");
     });
-    g.line("}");
-    g.line("return null;");
-  });
-  g.line("}");
-  g.break();
+    g.line("},");
+    g.break();
 
-  g.line(
-    `export function from${enumDef.name}String(json: string): ${enumDef.name} {`,
-  );
-  g.block(() => {
-    g.line("const input = parseEnumJson(json);");
-    g.line(`const error = validate${enumDef.name}(input);`);
-    g.line("if (error !== null) {");
-    g.block(() => {
-      g.line("throw new Error(error);");
+    writeDocComment(g, {
+      fallback: `Hydrates a validated ${enumDef.name} value. Enums return the input unchanged to keep the generated API uniform.`,
     });
-    g.line("}");
-    g.line(`return hydrate${enumDef.name}(input as ${enumDef.name});`);
+    g.line(`hydrate(input: ${enumDef.name}): ${enumDef.name} {`);
+    g.block(() => {
+      g.line("return input;");
+    });
+    g.line("},");
   });
-  g.line("}");
+  g.line("} as const;");
+}
+
+function renderEnumMembers(
+  g: ReturnType<typeof newGenerator>,
+  enumDef: EnumDef,
+): void {
+  /**
+   * Enum member literals live on the namespace object so consumers can use
+   * value access and runtime helpers from one exported symbol.
+   */
+  for (let index = 0; index < enumDef.members.length; index += 1) {
+    const member = enumDef.members[index];
+    if (!member) {
+      continue;
+    }
+
+    writeDocComment(g, {
+      doc: member.doc,
+      annotations: member.annotations,
+      fallback: `Represents the ${member.name} member of the ${enumDef.name} enum.`,
+    });
+    g.line(
+      `${renderPropertyName(member.name)}: ${renderEnumMemberLiteral(member.value)} as ${enumDef.name},`,
+    );
+
+    if (index < enumDef.members.length - 1) {
+      g.break();
+    }
+  }
 }
 
 function renderEnumRuntimeHelpers(g: ReturnType<typeof newGenerator>): void {
   /**
    * File-local helpers keep parsing logic consistent across every generated
-   * enum without introducing another generated runtime module.
+   * enum namespace without introducing another generated runtime module.
    */
-  g.line("function parseEnumJson(json: string): unknown {");
+  writeDocComment(g, {
+    fallback:
+      "Parses JSON text and wraps syntax failures in a stable generated error message.",
+  });
+  g.line("function parseJson(json: string): unknown {");
   g.block(() => {
     g.line("try {");
     g.block(() => {
