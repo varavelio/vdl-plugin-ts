@@ -68,7 +68,7 @@ describe("generate", () => {
     );
 
     const constants = fileContent(result, "constants.ts");
-    expect(constants).toContain('export const apiVersion: string = "1.0.0";');
+    expect(constants).toContain('export const apiVersion = "1.0.0";');
 
     const metadata = fileContent(result, "metadata.ts");
     expect(metadata).toContain("export type VDLSchemaMetadata = {");
