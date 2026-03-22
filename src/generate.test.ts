@@ -53,19 +53,15 @@ describe("generate", () => {
     expect(enums).toContain(
       'export type DeliveryState = "unknown" | "pending";',
     );
-    expect(enums).toContain(
-      "export function fromDeliveryStateString(json: string): DeliveryState {",
-    );
+    expect(enums).toContain("export const DeliveryState = {");
+    expect(enums).toContain("parse(json: string): DeliveryState {");
 
     const types = fileContent(result, "types.ts");
-    expect(types).toContain(
-      'import { type DeliveryState, hydrateDeliveryState, validateDeliveryState } from "./enums.ts";',
-    );
+    expect(types).toContain('import { DeliveryState } from "./enums.ts";');
     expect(types).toContain("export type User = {");
     expect(types).toContain("createdAt: Date;");
-    expect(types).toContain(
-      "export function fromUserString(json: string): User {",
-    );
+    expect(types).toContain("export const User = {");
+    expect(types).toContain("parse(json: string): User {");
 
     const constants = fileContent(result, "constants.ts");
     expect(constants).toContain('export const apiVersion = "1.0.0";');
