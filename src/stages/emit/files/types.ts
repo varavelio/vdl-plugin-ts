@@ -93,13 +93,7 @@ function renderNamedType(
   g.break();
   renderValidateFunction(g, typeDef);
   g.break();
-  renderTypeGuardFunction(g, typeDef);
-  g.break();
-  renderFromUnknownFunction(g, typeDef);
-  g.break();
   renderFromStringFunction(g, typeDef);
-  g.break();
-  renderCodecObject(g, typeDef);
 }
 
 function renderTypeDeclaration(
@@ -176,46 +170,6 @@ function renderValidateFunction(
   g.line("}");
 }
 
-function renderTypeGuardFunction(
-  g: ReturnType<typeof newGenerator>,
-  typeDef: TypeDef,
-): void {
-  /**
-   * Type guards delegate to validators so generated runtime checks stay
-   * centralized.
-   */
-  g.line(
-    `export function is${typeDef.name}(input: unknown): input is ${typeDef.name} {`,
-  );
-  g.block(() => {
-    g.line(`return validate${typeDef.name}(input) === null;`);
-  });
-  g.line("}");
-}
-
-function renderFromUnknownFunction(
-  g: ReturnType<typeof newGenerator>,
-  typeDef: TypeDef,
-): void {
-  /**
-   * `fromXUnknown` is the main runtime entrypoint when callers already own the
-   * JSON parsing step.
-   */
-  g.line(
-    `export function from${typeDef.name}Unknown(input: unknown): ${typeDef.name} {`,
-  );
-  g.block(() => {
-    g.line(`const error = validate${typeDef.name}(input);`);
-    g.line("if (error !== null) {");
-    g.block(() => {
-      g.line("throw new Error(error);");
-    });
-    g.line("}");
-    g.line(`return hydrate${typeDef.name}(input as ${typeDef.name});`);
-  });
-  g.line("}");
-}
-
 function renderFromStringFunction(
   g: ReturnType<typeof newGenerator>,
   typeDef: TypeDef,
@@ -228,27 +182,16 @@ function renderFromStringFunction(
     `export function from${typeDef.name}String(json: string): ${typeDef.name} {`,
   );
   g.block(() => {
-    g.line(`return from${typeDef.name}Unknown(parseJson(json));`);
+    g.line("const input = parseJson(json);");
+    g.line(`const error = validate${typeDef.name}(input);`);
+    g.line("if (error !== null) {");
+    g.block(() => {
+      g.line("throw new Error(error);");
+    });
+    g.line("}");
+    g.line(`return hydrate${typeDef.name}(input as ${typeDef.name});`);
   });
   g.line("}");
-}
-
-function renderCodecObject(
-  g: ReturnType<typeof newGenerator>,
-  typeDef: TypeDef,
-): void {
-  /**
-   * Codec objects provide a compact reusable runtime contract for consumers and
-   * for other generated modules.
-   */
-  g.line(`export const ${typeDef.name}Codec = {`);
-  g.block(() => {
-    g.line(`fromUnknown: from${typeDef.name}Unknown,`);
-    g.line(`fromString: from${typeDef.name}String,`);
-    g.line(`validate: validate${typeDef.name},`);
-    g.line(`hydrate: hydrate${typeDef.name},`);
-  });
-  g.line("} as const;");
 }
 
 function renderHydrationExpression(

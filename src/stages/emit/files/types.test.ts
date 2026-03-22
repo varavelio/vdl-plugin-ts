@@ -39,6 +39,9 @@ describe("generateTypesFile", () => {
     expect(file?.content).toContain("createdAt: Date;");
     expect(file?.content).toContain("export function hydratePayload");
     expect(file?.content).toContain("export function validatePayload");
+    expect(file?.content).toContain("export function fromPayloadString");
+    expect(file?.content).not.toContain("export function fromPayloadUnknown");
+    expect(file?.content).not.toContain("export const PayloadCodec");
   });
 });
 
