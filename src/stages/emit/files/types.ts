@@ -5,10 +5,7 @@ import type {
   TypeDef,
   TypeRef,
 } from "@varavel/vdl-plugin-sdk";
-import {
-  buildDocCommentLines,
-  writeDocComment,
-} from "../../../shared/comments";
+import { writeDocComment } from "../../../shared/comments";
 import { formatImportPath } from "../../../shared/imports";
 import {
   isIdentifierName,
@@ -23,8 +20,7 @@ import {
 import type { GeneratorContext } from "../../model/types";
 
 /**
- * Emits generated named types together with runtime validation and hydration
- * helpers.
+ * Emits generated named types together with merged runtime namespaces.
  */
 export function generateTypesFile(
   context: GeneratorContext,
@@ -36,16 +32,8 @@ export function generateTypesFile(
   const g = newGenerator().withSpaces(2);
 
   if (context.schema.enums.length > 0) {
-    const importItems: string[] = [];
-    for (const enumDef of context.schema.enums) {
-      importItems.push(
-        `type ${enumDef.name}`,
-        `hydrate${enumDef.name}`,
-        `validate${enumDef.name}`,
-      );
-    }
     g.line(
-      `import { ${importItems.join(", ")} } from ${JSON.stringify(formatImportPath("./enums", context.options.importExtension))};`,
+      `import { ${context.schema.enums.map((enumDef) => enumDef.name).join(", ")} } from ${JSON.stringify(formatImportPath("./enums", context.options.importExtension))};`,
     );
     g.break();
   }
@@ -73,27 +61,24 @@ function renderNamedType(
   context: GeneratorContext,
 ): void {
   /**
-   * Keeping one type declaration and all of its runtime helpers together makes
-   * the generated file easier to read and debug.
+   * Each generated model is emitted as a merged type plus const namespace so
+   * consumers get one stable symbol for type information and runtime helpers.
    */
-  writeDocComment(
-    g,
-    buildDocCommentLines({
-      doc: typeDef.doc,
-      annotations: typeDef.annotations,
-      fallback:
-        typeDef.typeRef.kind === "object"
-          ? `${typeDef.name} represents a generated VDL object.`
-          : `${typeDef.name} represents a generated VDL type alias.`,
-    }),
-  );
+  writeDocComment(g, {
+    doc: typeDef.doc,
+    annotations: typeDef.annotations,
+    fallback:
+      typeDef.typeRef.kind === "object"
+        ? `${typeDef.name} represents a generated VDL object.`
+        : `${typeDef.name} represents a generated VDL type alias.`,
+  });
   renderTypeDeclaration(g, typeDef, context);
   g.break();
-  renderHydrateFunction(g, typeDef);
-  g.break();
-  renderValidateFunction(g, typeDef);
-  g.break();
-  renderFromStringFunction(g, typeDef);
+
+  writeDocComment(g, {
+    fallback: `${typeDef.name} exposes the generated runtime helpers for ${typeDef.name}.`,
+  });
+  renderTypeNamespace(g, typeDef);
 }
 
 function renderTypeDeclaration(
@@ -115,13 +100,10 @@ function renderTypeDeclaration(
   g.line(`export type ${typeDef.name} = {`);
   g.block(() => {
     for (const field of typeDef.typeRef.objectFields ?? []) {
-      writeDocComment(
-        g,
-        buildDocCommentLines({
-          doc: field.doc,
-          annotations: field.annotations,
-        }),
-      );
+      writeDocComment(g, {
+        doc: field.doc,
+        annotations: field.annotations,
+      });
       g.line(
         `${renderPropertyName(field.name)}${field.optional ? "?" : ""}: ${renderTypeScriptType(field.typeRef, context)};`,
       );
@@ -130,68 +112,63 @@ function renderTypeDeclaration(
   g.line("};");
 }
 
-function renderHydrateFunction(
+function renderTypeNamespace(
   g: ReturnType<typeof newGenerator>,
   typeDef: TypeDef,
 ): void {
   /**
-   * Hydration is separate from validation so parsed data can be transformed
-   * into final runtime shapes such as `Date` instances.
+   * The namespace object keeps parsing, validation, and hydration methods under
+   * the same exported symbol as the model type.
    */
-  g.line(
-    `export function hydrate${typeDef.name}(input: ${typeDef.name}): ${typeDef.name} {`,
-  );
+  g.line(`export const ${typeDef.name} = {`);
   g.block(() => {
-    g.line(`return ${renderHydrationExpression(typeDef.typeRef, "input", 0)};`);
-  });
-  g.line("}");
-}
-
-function renderValidateFunction(
-  g: ReturnType<typeof newGenerator>,
-  typeDef: TypeDef,
-): void {
-  /**
-   * Validators operate on `unknown` input to match how TypeScript applications
-   * typically handle parsed JSON.
-   */
-  g.line(
-    `export function validate${typeDef.name}(input: unknown, path = ${JSON.stringify(typeDef.name)}): string | null {`,
-  );
-  g.block(() => {
-    writeValidationStatements(g, {
-      typeRef: typeDef.typeRef,
-      valueExpression: "input",
-      pathExpression: "path",
-      depth: 0,
+    writeDocComment(g, {
+      fallback: `Parses a JSON string into a validated and hydrated ${typeDef.name} value.`,
     });
-    g.line("return null;");
-  });
-  g.line("}");
-}
-
-function renderFromStringFunction(
-  g: ReturnType<typeof newGenerator>,
-  typeDef: TypeDef,
-): void {
-  /**
-   * `fromXString` mirrors the no-unmarshal TypeScript workflow by explicitly
-   * parsing, validating, and hydrating JSON text.
-   */
-  g.line(
-    `export function from${typeDef.name}String(json: string): ${typeDef.name} {`,
-  );
-  g.block(() => {
-    g.line("const input = parseJson(json);");
-    g.line(`const error = validate${typeDef.name}(input);`);
-    g.line("if (error !== null) {");
+    g.line(`parse(json: string): ${typeDef.name} {`);
     g.block(() => {
-      g.line("throw new Error(error);");
+      g.line("const input = parseJson(json);");
+      g.line(`const error = ${typeDef.name}.validate(input);`);
+      g.line("if (error !== null) {");
+      g.block(() => {
+        g.line("throw new Error(error);");
+      });
+      g.line("}");
+      g.line(`return ${typeDef.name}.hydrate(input as ${typeDef.name});`);
     });
-    g.line("}");
-    g.line(`return hydrate${typeDef.name}(input as ${typeDef.name});`);
+    g.line("},");
+    g.break();
+
+    writeDocComment(g, {
+      fallback: `Validates unknown input against the ${typeDef.name} schema.`,
+    });
+    g.line(
+      `validate(input: unknown, path = ${JSON.stringify(typeDef.name)}): string | null {`,
+    );
+    g.block(() => {
+      writeValidationStatements(g, {
+        typeRef: typeDef.typeRef,
+        valueExpression: "input",
+        pathExpression: "path",
+        depth: 0,
+      });
+      g.line("return null;");
+    });
+    g.line("},");
+    g.break();
+
+    writeDocComment(g, {
+      fallback: `Hydrates a validated ${typeDef.name} value into its runtime representation.`,
+    });
+    g.line(`hydrate(input: ${typeDef.name}): ${typeDef.name} {`);
+    g.block(() => {
+      g.line(
+        `return ${renderHydrationExpression(typeDef.typeRef, "input", 0)};`,
+      );
+    });
+    g.line("},");
   });
-  g.line("}");
+  g.line("} as const;");
 }
 
 function renderHydrationExpression(
@@ -200,7 +177,7 @@ function renderHydrationExpression(
   depth: number,
 ): string {
   /**
-   * Recursive expression generation keeps the emitted hydrate functions simple
+   * Recursive expression generation keeps the emitted hydrate methods compact
    * while still handling nested maps, arrays, enums, and dates.
    */
   switch (typeRef.kind) {
@@ -209,9 +186,9 @@ function renderHydrationExpression(
         ? `hydrateDateInput(${valueExpression})`
         : valueExpression;
     case "enum":
-      return `hydrate${typeRef.enumName}(${valueExpression})`;
+      return `${typeRef.enumName}.hydrate(${valueExpression})`;
     case "type":
-      return `hydrate${typeRef.typeName}(${valueExpression})`;
+      return `${typeRef.typeName}.hydrate(${valueExpression})`;
     case "array": {
       const itemName = `item${depth}`;
       return `${valueExpression}.map((${itemName}) => ${renderHydrationExpression(getArrayItemType(typeRef), itemName, depth + 1)})`;
@@ -280,10 +257,10 @@ function writeValidationStatements(
       );
       return;
     case "enum":
-      g.line(`{`);
+      g.line("{");
       g.block(() => {
         g.line(
-          `const error = validate${options.typeRef.enumName}(${options.valueExpression}, ${options.pathExpression});`,
+          `const error = ${options.typeRef.enumName}.validate(${options.valueExpression}, ${options.pathExpression});`,
         );
         g.line("if (error !== null) {");
         g.block(() => {
@@ -294,10 +271,10 @@ function writeValidationStatements(
       g.line("}");
       return;
     case "type":
-      g.line(`{`);
+      g.line("{");
       g.block(() => {
         g.line(
-          `const error = validate${options.typeRef.typeName}(${options.valueExpression}, ${options.pathExpression});`,
+          `const error = ${options.typeRef.typeName}.validate(${options.valueExpression}, ${options.pathExpression});`,
         );
         g.line("if (error !== null) {");
         g.block(() => {
@@ -490,6 +467,10 @@ function renderRuntimeHelpers(g: ReturnType<typeof newGenerator>): void {
    * File-local helpers keep the generated runtime self-sufficient without a
    * separate shared support module.
    */
+  writeDocComment(g, {
+    fallback:
+      "Parses JSON text and wraps syntax failures in a stable generated error message.",
+  });
   g.line("function parseJson(json: string): unknown {");
   g.block(() => {
     g.line("try {");
@@ -508,6 +489,10 @@ function renderRuntimeHelpers(g: ReturnType<typeof newGenerator>): void {
   g.line("}");
   g.break();
 
+  writeDocComment(g, {
+    fallback:
+      "Checks whether a value can be validated as a plain object record.",
+  });
   g.line(
     "function isRecord(value: unknown): value is Record<string, unknown> {",
   );
@@ -519,6 +504,10 @@ function renderRuntimeHelpers(g: ReturnType<typeof newGenerator>): void {
   g.line("}");
   g.break();
 
+  writeDocComment(g, {
+    fallback:
+      "Checks whether a record defines a property directly on the current object.",
+  });
   g.line(
     "function hasOwn(record: Record<string, unknown>, key: string): boolean {",
   );
@@ -528,6 +517,10 @@ function renderRuntimeHelpers(g: ReturnType<typeof newGenerator>): void {
   g.line("}");
   g.break();
 
+  writeDocComment(g, {
+    fallback:
+      "Describes an input value using the categories reported by generated validation errors.",
+  });
   g.line("function describeValue(value: unknown): string {");
   g.block(() => {
     g.line("if (value === null) {");
@@ -550,6 +543,10 @@ function renderRuntimeHelpers(g: ReturnType<typeof newGenerator>): void {
   g.line("}");
   g.break();
 
+  writeDocComment(g, {
+    fallback:
+      "Checks whether an input can be hydrated into a valid Date instance.",
+  });
   g.line("function isValidDateInput(value: unknown): value is string | Date {");
   g.block(() => {
     g.line("if (value instanceof Date) {");
@@ -567,6 +564,9 @@ function renderRuntimeHelpers(g: ReturnType<typeof newGenerator>): void {
   g.line("}");
   g.break();
 
+  writeDocComment(g, {
+    fallback: "Hydrates a string or Date input into a fresh Date instance.",
+  });
   g.line("function hydrateDateInput(value: string | Date): Date {");
   g.block(() => {
     g.line(

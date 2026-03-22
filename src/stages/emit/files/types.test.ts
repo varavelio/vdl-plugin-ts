@@ -4,7 +4,7 @@ import { createGeneratorContext } from "../../model/build-context";
 import { generateTypesFile } from "./types";
 
 describe("generateTypesFile", () => {
-  it("renders named types, enum imports, validators, and hydrators", () => {
+  it("renders merged type namespaces with enum namespace imports", () => {
     const result = createGeneratorContext({
       input: irb.pluginInput({
         ir: irb.schema({
@@ -33,15 +33,13 @@ describe("generateTypesFile", () => {
 
     const file = generateTypesFile(expectContext(result.context));
 
-    expect(file?.content).toContain(
-      'import { type Status, hydrateStatus, validateStatus } from "./enums.ts";',
-    );
+    expect(file?.content).toContain('import { Status } from "./enums.ts";');
     expect(file?.content).toContain("createdAt: Date;");
-    expect(file?.content).toContain("export function hydratePayload");
-    expect(file?.content).toContain("export function validatePayload");
-    expect(file?.content).toContain("export function fromPayloadString");
-    expect(file?.content).not.toContain("export function fromPayloadUnknown");
-    expect(file?.content).not.toContain("export const PayloadCodec");
+    expect(file?.content).toContain("export const Payload = {");
+    expect(file?.content).toContain("parse(json: string): Payload {");
+    expect(file?.content).toContain("const error = Payload.validate(input);");
+    expect(file?.content).toContain("status: Status.hydrate(input.status),");
+    expect(file?.content).not.toContain("export function validatePayload");
   });
 });
 
