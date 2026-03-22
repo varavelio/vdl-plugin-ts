@@ -22,7 +22,6 @@ export function generateEnumsFile(
 
   for (let index = 0; index < context.schema.enums.length; index += 1) {
     renderEnum(g, context.schema.enums[index] as EnumDef);
-
     if (index < context.schema.enums.length - 1) {
       g.break();
     }
@@ -66,19 +65,10 @@ function renderEnum(
   g.break();
 
   g.line(
-    `export const ${enumDef.name}List: ${enumDef.name}[] = [${enumDef.members
+    `const ${enumDef.name}Values = [${enumDef.members
       .map((member) => renderEnumMemberLiteral(member.value))
-      .join(", ")}];`,
+      .join(", ")}] as const;`,
   );
-  g.break();
-
-  g.line(
-    `export function is${enumDef.name}(input: unknown): input is ${enumDef.name} {`,
-  );
-  g.block(() => {
-    g.line(`return ${enumDef.name}List.includes(input as ${enumDef.name});`);
-  });
-  g.line("}");
   g.break();
 
   g.line(
@@ -94,7 +84,7 @@ function renderEnum(
     `export function validate${enumDef.name}(input: unknown, path = ${JSON.stringify(enumDef.name)}): string | null {`,
   );
   g.block(() => {
-    g.line(`if (!is${enumDef.name}(input)) {`);
+    g.line(`if (!${enumDef.name}Values.includes(input as ${enumDef.name})) {`);
     g.block(() => {
       g.line(
         `return \`\${path}: invalid enum value '\${String(input)}' for ${enumDef.name}\`;`,
@@ -107,9 +97,10 @@ function renderEnum(
   g.break();
 
   g.line(
-    `export function from${enumDef.name}Unknown(input: unknown): ${enumDef.name} {`,
+    `export function from${enumDef.name}String(json: string): ${enumDef.name} {`,
   );
   g.block(() => {
+    g.line("const input = parseEnumJson(json);");
     g.line(`const error = validate${enumDef.name}(input);`);
     g.line("if (error !== null) {");
     g.block(() => {
@@ -119,37 +110,6 @@ function renderEnum(
     g.line(`return hydrate${enumDef.name}(input as ${enumDef.name});`);
   });
   g.line("}");
-  g.break();
-
-  g.line(
-    `export function from${enumDef.name}String(json: string): ${enumDef.name} {`,
-  );
-  g.block(() => {
-    g.line(
-      `return fromUnknownEnumJson(json, validate${enumDef.name}, hydrate${enumDef.name});`,
-    );
-  });
-  g.line("}");
-  g.break();
-
-  g.line(`export const ${enumDef.name}Codec = {`);
-  g.block(() => {
-    g.line(`fromUnknown: from${enumDef.name}Unknown,`);
-    g.line(`fromString: from${enumDef.name}String,`);
-    g.line(`validate: validate${enumDef.name},`);
-    g.line(`hydrate: hydrate${enumDef.name},`);
-  });
-  g.line("} as const;");
-  g.break();
-
-  g.line(
-    `export function get${enumDef.name}Values(): readonly ${enumDef.name}[] {`,
-  );
-  g.block(() => {
-    g.line(`return ${enumDef.name}List;`);
-  });
-  g.line("}");
-  g.break();
 }
 
 function renderEnumRuntimeHelpers(g: ReturnType<typeof newGenerator>): void {
@@ -157,26 +117,6 @@ function renderEnumRuntimeHelpers(g: ReturnType<typeof newGenerator>): void {
    * File-local helpers keep parsing logic consistent across every generated
    * enum without introducing another generated runtime module.
    */
-  g.line("function fromUnknownEnumJson<T>(");
-  g.block(() => {
-    g.line("json: string,");
-    g.line("validate: (input: unknown, path?: string) => string | null,");
-    g.line("hydrate: (input: T) => T,");
-  });
-  g.line(") : T {");
-  g.block(() => {
-    g.line("const input = parseEnumJson(json);");
-    g.line("const error = validate(input);");
-    g.line("if (error !== null) {");
-    g.block(() => {
-      g.line("throw new Error(error);");
-    });
-    g.line("}");
-    g.line("return hydrate(input as T);");
-  });
-  g.line("}");
-  g.break();
-
   g.line("function parseEnumJson(json: string): unknown {");
   g.block(() => {
     g.line("try {");

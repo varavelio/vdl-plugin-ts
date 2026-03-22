@@ -28,6 +28,9 @@ describe("generateEnumsFile", () => {
     expect(file?.content).toContain("export type Priority = 1 | 2;");
     expect(file?.content).toContain("export function validatePriority");
     expect(file?.content).toContain("export function fromPriorityString");
+    expect(file?.content).not.toContain("export function fromPriorityUnknown");
+    expect(file?.content).not.toContain("export const PriorityCodec");
+    expect(file?.content).not.toContain("export function isPriority");
   });
 });
 
