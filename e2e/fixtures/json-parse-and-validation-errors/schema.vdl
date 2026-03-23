@@ -1,0 +1,9 @@
+enum Mode {
+  On = "on"
+  Off = "off"
+}
+
+type ServiceConfig {
+  mode Mode
+  startedAt datetime
+}
