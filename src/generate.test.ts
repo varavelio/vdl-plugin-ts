@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { generate } from "./generate";
 
 describe("generate", () => {
-  it("emits enums, types, constants, metadata, and an index barrel", () => {
+  it("emits enums, types, constants, and an index barrel", () => {
     const result = generate(
       irb.pluginInput({
         options: {
@@ -45,7 +45,6 @@ describe("generate", () => {
       "enums.ts",
       "types.ts",
       "constants.ts",
-      "metadata.ts",
       "index.ts",
     ]);
 
@@ -66,22 +65,15 @@ describe("generate", () => {
     const constants = fileContent(result, "constants.ts");
     expect(constants).toContain('export const apiVersion = "1.0.0" as const;');
 
-    const metadata = fileContent(result, "metadata.ts");
-    expect(metadata).toContain("export type VDLSchemaMetadata = {");
-    expect(metadata).toContain('"User": {');
-    expect(metadata).toContain('"DeliveryState": {');
-
     const index = fileContent(result, "index.ts");
     expect(index).toContain('export * from "./enums.ts";');
-    expect(index).toContain('export * from "./metadata.ts";');
   });
 
-  it("omits constants and metadata when disabled", () => {
+  it("omits constants when disabled", () => {
     const result = generate(
       irb.pluginInput({
         options: {
           genConsts: "false",
-          genMeta: "false",
         },
         ir: irb.schema({
           types: [irb.typeDef("Payload", irb.objectType([]))],
@@ -99,14 +91,11 @@ describe("generate", () => {
     ]);
   });
 
-  it("emits only metadata and index for an empty schema", () => {
+  it("emits only index for an empty schema", () => {
     const result = generate(irb.pluginInput());
 
     expect(result.errors).toBeUndefined();
-    expect(result.files?.map((file) => file.path)).toEqual([
-      "metadata.ts",
-      "index.ts",
-    ]);
+    expect(result.files?.map((file) => file.path)).toEqual(["index.ts"]);
   });
 });
 
