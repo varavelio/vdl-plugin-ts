@@ -64,7 +64,7 @@ describe("generate", () => {
     expect(types).toContain("parse(json: string): User {");
 
     const constants = fileContent(result, "constants.ts");
-    expect(constants).toContain('export const apiVersion = "1.0.0";');
+    expect(constants).toContain('export const apiVersion = "1.0.0" as const;');
 
     const metadata = fileContent(result, "metadata.ts");
     expect(metadata).toContain("export type VDLSchemaMetadata = {");
