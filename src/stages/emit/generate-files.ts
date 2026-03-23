@@ -4,7 +4,6 @@ import type { GeneratorContext } from "../model/types";
 import { generateConstantsFile } from "./files/constants";
 import { generateEnumsFile } from "./files/enums";
 import { generateIndexFile } from "./files/index";
-import { generateMetadataFile } from "./files/metadata";
 import { generateTypesFile } from "./files/types";
 
 /**
@@ -15,7 +14,6 @@ export function generateFiles(context: GeneratorContext): PluginOutputFile[] {
     generateEnumsFile(context),
     generateTypesFile(context),
     generateConstantsFile(context),
-    generateMetadataFile(context),
     generateIndexFile(context),
   ]);
 }
