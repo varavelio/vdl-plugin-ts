@@ -21,10 +21,6 @@ export function generateIndexFile(context: GeneratorContext): PluginOutputFile {
     lines.push(renderExportAll("./constants", context.options.importExtension));
   }
 
-  if (context.options.genMeta) {
-    lines.push(renderExportAll("./metadata", context.options.importExtension));
-  }
-
   if (lines.length === 0) {
     lines.push("export {};");
   }
