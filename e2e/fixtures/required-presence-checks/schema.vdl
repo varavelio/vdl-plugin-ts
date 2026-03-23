@@ -1,0 +1,5 @@
+type PresencePayload {
+  emptyText string
+  zeroCount int
+  disabled bool
+}
