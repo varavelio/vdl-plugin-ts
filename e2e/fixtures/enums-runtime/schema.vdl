@@ -1,0 +1,10 @@
+enum DeliveryState {
+  Unknown = ""
+  Pending = "pending"
+  InTransit = "in-transit"
+}
+
+enum Priority {
+  Low = 0
+  High = 9
+}
