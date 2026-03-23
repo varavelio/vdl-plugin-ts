@@ -250,13 +250,11 @@ function renderObjectEntry(key: string, value: string, depth: number): string {
 
 function indentLiteral(value: string, depth: number): string {
   /**
-   * Multiline literal rendering uses deterministic two-space indentation so the
-   * emitted constants stay readable without a formatter pass.
+   * Array items only shift their first line because nested multiline literals
+   * already carry their own internal indentation for child lines.
    */
-  return value
-    .split("\n")
-    .map((line) => `${indent(depth)}${line}`)
-    .join("\n");
+  const [firstLine, ...restLines] = value.split("\n");
+  return [`${indent(depth)}${firstLine}`, ...restLines].join("\n");
 }
 
 function indent(depth: number): string {
