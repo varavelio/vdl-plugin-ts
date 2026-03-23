@@ -9,7 +9,6 @@ describe("resolveGeneratorOptions", () => {
     expect(result.errors).toEqual([]);
     expect(result.options).toEqual({
       genConsts: true,
-      genMeta: true,
       importExtension: "js",
     });
   });
@@ -19,7 +18,6 @@ describe("resolveGeneratorOptions", () => {
       irb.pluginInput({
         options: {
           genConsts: "off",
-          genMeta: "false",
           importExtension: "ts",
         },
       }),
@@ -28,7 +26,6 @@ describe("resolveGeneratorOptions", () => {
     expect(result.errors).toEqual([]);
     expect(result.options).toEqual({
       genConsts: false,
-      genMeta: false,
       importExtension: "ts",
     });
   });
