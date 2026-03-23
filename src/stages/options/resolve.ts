@@ -14,6 +14,7 @@ export function resolveGeneratorOptions(input: PluginInput): {
   errors: PluginOutputError[];
 } {
   const genConsts = options.getOptionBool(input.options, "genConsts", true);
+  const strict = options.getOptionBool(input.options, "strict", true);
   const importExtension = options.getOptionEnum(
     input.options,
     "importExtension",
@@ -25,6 +26,7 @@ export function resolveGeneratorOptions(input: PluginInput): {
     errors: [],
     options: {
       genConsts,
+      strict,
       importExtension,
     },
   };
