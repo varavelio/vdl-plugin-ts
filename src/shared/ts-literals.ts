@@ -12,6 +12,15 @@ export function renderLiteralValueExpression(
   literal: LiteralValue,
   context: GeneratorContext,
 ): string {
+  return renderLiteralValue(typeRef, literal, context, 0);
+}
+
+function renderLiteralValue(
+  typeRef: TypeRef,
+  literal: LiteralValue,
+  context: GeneratorContext,
+  depth: number,
+): string {
   const resolvedTypeRef =
     typeRef.kind === "type"
       ? resolveNonAliasTypeRef(typeRef, context)
@@ -28,11 +37,11 @@ export function renderLiteralValueExpression(
       );
       return "";
     case "array":
-      return renderArrayLiteral(resolvedTypeRef, literal, context);
+      return renderArrayLiteral(resolvedTypeRef, literal, context, depth);
     case "map":
-      return renderMapLiteral(resolvedTypeRef, literal, context);
+      return renderMapLiteral(resolvedTypeRef, literal, context, depth);
     case "object":
-      return renderObjectLiteral(resolvedTypeRef, literal, context);
+      return renderObjectLiteral(resolvedTypeRef, literal, context, depth);
     default:
       fail(
         `Unsupported VDL literal type kind ${JSON.stringify(resolvedTypeRef.kind)}.`,
@@ -113,21 +122,37 @@ function renderArrayLiteral(
   typeRef: TypeRef,
   literal: LiteralValue,
   context: GeneratorContext,
+  depth: number,
 ): string {
   /**
    * Array constants reuse the nested literal renderer for each element.
    */
   const items = literal.arrayItems ?? [];
   const itemType = getArrayItemType(typeRef);
-  return `[${items
-    .map((item) => renderLiteralValueExpression(itemType, item, context))
-    .join(", ")}]`;
+
+  if (items.length === 0) {
+    return "[]";
+  }
+
+  return [
+    "[",
+    items
+      .map((item) =>
+        indentLiteral(
+          renderLiteralValue(itemType, item, context, depth + 1),
+          depth + 1,
+        ),
+      )
+      .join(",\n"),
+    `${indent(depth)}]`,
+  ].join("\n");
 }
 
 function renderMapLiteral(
   typeRef: TypeRef,
   literal: LiteralValue,
   context: GeneratorContext,
+  depth: number,
 ): string {
   /**
    * VDL maps compile to string-keyed records, so object literal syntax is the
@@ -143,18 +168,26 @@ function renderMapLiteral(
     return "{}";
   }
 
-  return `{ ${entries
-    .map(
-      (entry) =>
-        `${JSON.stringify(entry.key)}: ${renderLiteralValueExpression(valueType, entry.value, context)}`,
-    )
-    .join(", ")} }`;
+  return [
+    "{",
+    entries
+      .map((entry) =>
+        renderObjectEntry(
+          entry.key,
+          renderLiteralValue(valueType, entry.value, context, depth + 1),
+          depth + 1,
+        ),
+      )
+      .join(",\n"),
+    `${indent(depth)}}`,
+  ].join("\n");
 }
 
 function renderObjectLiteral(
   typeRef: TypeRef,
   literal: LiteralValue,
   context: GeneratorContext,
+  depth: number,
 ): string {
   /**
    * Object literal rendering validates field membership while trusting the IR's
@@ -175,7 +208,11 @@ function renderObjectLiteral(
     }
 
     renderedEntries.push(
-      `${JSON.stringify(entry.key)}: ${renderLiteralValueExpression(field.typeRef, entry.value, context)}`,
+      renderObjectEntry(
+        entry.key,
+        renderLiteralValue(field.typeRef, entry.value, context, depth + 1),
+        depth + 1,
+      ),
     );
   }
 
@@ -194,5 +231,38 @@ function renderObjectLiteral(
     return "{}";
   }
 
-  return `{ ${renderedEntries.join(", ")} }`;
+  return ["{", renderedEntries.join(",\n"), `${indent(depth)}}`].join("\n");
+}
+
+function renderObjectEntry(key: string, value: string, depth: number): string {
+  /**
+   * Object and map entries keep the property key on the first line while
+   * allowing nested array or object values to span multiple readable lines.
+   */
+  const lines = value.split("\n");
+  const [firstLine, ...restLines] = lines;
+
+  return [
+    `${indent(depth)}${JSON.stringify(key)}: ${firstLine}`,
+    ...restLines,
+  ].join("\n");
+}
+
+function indentLiteral(value: string, depth: number): string {
+  /**
+   * Multiline literal rendering uses deterministic two-space indentation so the
+   * emitted constants stay readable without a formatter pass.
+   */
+  return value
+    .split("\n")
+    .map((line) => `${indent(depth)}${line}`)
+    .join("\n");
+}
+
+function indent(depth: number): string {
+  /**
+   * Literal indentation matches the two-space style used across generated
+   * TypeScript files.
+   */
+  return "  ".repeat(depth);
 }
