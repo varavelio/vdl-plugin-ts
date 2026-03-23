@@ -13,6 +13,8 @@ import type { ImportExtension } from "../../shared/imports";
 export interface GeneratorOptions {
   /** Whether to emit `constants.ts` when constants exist. */
   genConsts: boolean;
+  /** Whether generated parse helpers should enforce runtime validation. */
+  strict: boolean;
   /** Import extension strategy for generated internal imports. */
   importExtension: ImportExtension;
 }
