@@ -34,11 +34,15 @@ describe("generateConstantsFile", () => {
 
     const file = generateConstantsFile(expectContext(result.context));
 
-    expect(file?.content).toContain('export const apiVersion = "1.0.0";');
+    expect(file?.content).toContain(
+      'export const apiVersion = "1.0.0" as const;',
+    );
     expect(file?.content).not.toContain(
       'import type { Status } from "./enums.ts";',
     );
-    expect(file?.content).toContain('export const defaultStatus = "active";');
+    expect(file?.content).toContain(
+      'export const defaultStatus = "active" as const;',
+    );
   });
 });
 

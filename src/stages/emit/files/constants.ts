@@ -28,7 +28,7 @@ export function generateConstantsFile(
       fallback: `${constant.def.name} holds a generated VDL constant.`,
     });
     g.line(
-      `export const ${constant.def.name} = ${renderLiteralValueExpression(constant.typeRef, constant.def.value, context)};`,
+      `export const ${constant.def.name} = ${renderLiteralValueExpression(constant.typeRef, constant.def.value, context)} as const;`,
     );
 
     if (index < context.constants.length - 1) {
