@@ -44,7 +44,7 @@ export function generateTypesFile(
   }
 
   g.break();
-  renderRuntimeHelpers(g);
+  renderRuntimeHelpers(g, context.options.strict);
 
   return {
     path: "types.ts",
@@ -75,7 +75,7 @@ function renderNamedType(
   writeDocComment(g, {
     fallback: `${typeDef.name} exposes the generated runtime helpers for ${typeDef.name}.`,
   });
-  renderTypeNamespace(g, typeDef);
+  renderTypeNamespace(g, typeDef, context.options.strict);
 }
 
 function renderTypeDeclaration(
@@ -112,6 +112,7 @@ function renderTypeDeclaration(
 function renderTypeNamespace(
   g: ReturnType<typeof newGenerator>,
   typeDef: TypeDef,
+  strict: boolean,
 ): void {
   /**
    * The namespace object keeps parsing, validation, and hydration methods under
@@ -120,39 +121,47 @@ function renderTypeNamespace(
   g.line(`export const ${typeDef.name} = {`);
   g.block(() => {
     writeDocComment(g, {
-      fallback: `Parses a JSON string into a validated and hydrated ${typeDef.name} value.`,
+      fallback: strict
+        ? `Parses a JSON string into a validated and hydrated ${typeDef.name} value.`
+        : `Parses a JSON string and hydrates it as ${typeDef.name} without runtime validation.`,
     });
     g.line(`parse(json: string): ${typeDef.name} {`);
     g.block(() => {
       g.line("const input = _vdl.parseJson(json);");
-      g.line(`const error = ${typeDef.name}.validate(input);`);
-      g.line("if (error !== null) {");
-      g.block(() => {
-        g.line("throw new Error(error);");
-      });
-      g.line("}");
+      if (strict) {
+        g.line(`const error = ${typeDef.name}.validate(input);`);
+        g.line("if (error !== null) {");
+        g.block(() => {
+          g.line("throw new Error(error);");
+        });
+        g.line("}");
+      }
       g.line(`return ${typeDef.name}.hydrate(input as ${typeDef.name});`);
     });
     g.line("},");
-    g.break();
 
-    writeDocComment(g, {
-      fallback: `Validates unknown input against the ${typeDef.name} schema.`,
-    });
-    g.line(
-      `validate(input: unknown, path = ${JSON.stringify(typeDef.name)}): string | null {`,
-    );
-    g.block(() => {
-      writeValidationStatements(g, {
-        typeRef: typeDef.typeRef,
-        valueExpression: "input",
-        pathExpression: "path",
-        depth: 0,
+    if (strict) {
+      g.break();
+      writeDocComment(g, {
+        fallback: `Performs structural validation for ${typeDef.name} (required field presence and basic type shape only); it does not enforce business rules.`,
       });
-      g.line("return null;");
-    });
-    g.line("},");
-    g.break();
+      g.line(
+        `validate(input: unknown, path = ${JSON.stringify(typeDef.name)}): string | null {`,
+      );
+      g.block(() => {
+        writeValidationStatements(g, {
+          typeRef: typeDef.typeRef,
+          valueExpression: "input",
+          pathExpression: "path",
+          depth: 0,
+        });
+        g.line("return null;");
+      });
+      g.line("},");
+      g.break();
+    } else {
+      g.break();
+    }
 
     writeDocComment(g, {
       fallback: `Hydrates a validated ${typeDef.name} value into its runtime representation.`,
@@ -459,7 +468,10 @@ function writePrimitiveValidation(
   }
 }
 
-function renderRuntimeHelpers(g: ReturnType<typeof newGenerator>): void {
+function renderRuntimeHelpers(
+  g: ReturnType<typeof newGenerator>,
+  strict: boolean,
+): void {
   /**
    * File-local helpers keep the generated runtime self-sufficient without a
    * separate shared support module.
@@ -492,76 +504,78 @@ function renderRuntimeHelpers(g: ReturnType<typeof newGenerator>): void {
     g.line("},");
     g.break();
 
-    writeDocComment(g, {
-      fallback:
-        "Checks whether a value can be validated as a plain object record.",
-    });
-    g.line("isRecord(value: unknown): value is Record<string, unknown> {");
-    g.block(() => {
-      g.line(
-        'return typeof value === "object" && value !== null && !Array.isArray(value) && !(value instanceof Date);',
-      );
-    });
-    g.line("},");
-    g.break();
+    if (strict) {
+      writeDocComment(g, {
+        fallback:
+          "Checks whether a value can be validated as a plain object record.",
+      });
+      g.line("isRecord(value: unknown): value is Record<string, unknown> {");
+      g.block(() => {
+        g.line(
+          'return typeof value === "object" && value !== null && !Array.isArray(value) && !(value instanceof Date);',
+        );
+      });
+      g.line("},");
+      g.break();
 
-    writeDocComment(g, {
-      fallback:
-        "Checks whether a record defines a property directly on the current object.",
-    });
-    g.line("hasOwn(record: Record<string, unknown>, key: string): boolean {");
-    g.block(() => {
-      g.line("return Object.prototype.hasOwnProperty.call(record, key);");
-    });
-    g.line("},");
-    g.break();
+      writeDocComment(g, {
+        fallback:
+          "Checks whether a record defines a property directly on the current object.",
+      });
+      g.line("hasOwn(record: Record<string, unknown>, key: string): boolean {");
+      g.block(() => {
+        g.line("return Object.prototype.hasOwnProperty.call(record, key);");
+      });
+      g.line("},");
+      g.break();
 
-    writeDocComment(g, {
-      fallback:
-        "Describes an input value using the categories reported by generated validation errors.",
-    });
-    g.line("describeValue(value: unknown): string {");
-    g.block(() => {
-      g.line("if (value === null) {");
-      g.block(() => {
-        g.line('return "null";');
+      writeDocComment(g, {
+        fallback:
+          "Describes an input value using the categories reported by generated validation errors.",
       });
-      g.line("}");
-      g.line("if (Array.isArray(value)) {");
+      g.line("describeValue(value: unknown): string {");
       g.block(() => {
-        g.line('return "array";');
+        g.line("if (value === null) {");
+        g.block(() => {
+          g.line('return "null";');
+        });
+        g.line("}");
+        g.line("if (Array.isArray(value)) {");
+        g.block(() => {
+          g.line('return "array";');
+        });
+        g.line("}");
+        g.line("if (value instanceof Date) {");
+        g.block(() => {
+          g.line('return "Date";');
+        });
+        g.line("}");
+        g.line("return typeof value;");
       });
-      g.line("}");
-      g.line("if (value instanceof Date) {");
-      g.block(() => {
-        g.line('return "Date";');
-      });
-      g.line("}");
-      g.line("return typeof value;");
-    });
-    g.line("},");
-    g.break();
+      g.line("},");
+      g.break();
 
-    writeDocComment(g, {
-      fallback:
-        "Checks whether an input can be hydrated into a valid Date instance.",
-    });
-    g.line("isValidDateInput(value: unknown): value is string | Date {");
-    g.block(() => {
-      g.line("if (value instanceof Date) {");
-      g.block(() => {
-        g.line("return !Number.isNaN(value.getTime());");
+      writeDocComment(g, {
+        fallback:
+          "Checks whether an input can be hydrated into a valid Date instance.",
       });
-      g.line("}");
-      g.line('if (typeof value !== "string") {');
+      g.line("isValidDateInput(value: unknown): value is string | Date {");
       g.block(() => {
-        g.line("return false;");
+        g.line("if (value instanceof Date) {");
+        g.block(() => {
+          g.line("return !Number.isNaN(value.getTime());");
+        });
+        g.line("}");
+        g.line('if (typeof value !== "string") {');
+        g.block(() => {
+          g.line("return false;");
+        });
+        g.line("}");
+        g.line("return !Number.isNaN(new Date(value).getTime());");
       });
-      g.line("}");
-      g.line("return !Number.isNaN(new Date(value).getTime());");
-    });
-    g.line("},");
-    g.break();
+      g.line("},");
+      g.break();
+    }
 
     writeDocComment(g, {
       fallback: "Hydrates a string or Date input into a fresh Date instance.",

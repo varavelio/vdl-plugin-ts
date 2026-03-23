@@ -91,6 +91,42 @@ describe("generate", () => {
     ]);
   });
 
+  it("omits runtime validate methods when strict mode is disabled", () => {
+    const result = generate(
+      irb.pluginInput({
+        options: {
+          strict: "false",
+          importExtension: "ts",
+        },
+        ir: irb.schema({
+          enums: [
+            irb.enumDef("Status", "string", [
+              irb.enumMember("Ready", irb.stringLiteral("ready")),
+            ]),
+          ],
+          types: [
+            irb.typeDef(
+              "Payload",
+              irb.objectType([
+                irb.field("status", irb.enumType("Status", "string")),
+              ]),
+            ),
+          ],
+        }),
+      }),
+    );
+
+    expect(result.errors).toBeUndefined();
+
+    const enums = fileContent(result, "enums.ts");
+    expect(enums).not.toContain("validate(input: unknown");
+    expect(enums).not.toContain("const error = Status.validate(input);");
+
+    const types = fileContent(result, "types.ts");
+    expect(types).not.toContain("validate(input: unknown");
+    expect(types).not.toContain("const error = Payload.validate(input);");
+  });
+
   it("emits only index for an empty schema", () => {
     const result = generate(irb.pluginInput());
 

@@ -18,6 +18,7 @@ describe("generateEnumsFile", () => {
       }),
       generatorOptions: {
         genConsts: true,
+        strict: true,
         importExtension: "js",
       },
     });
@@ -32,11 +33,40 @@ describe("generateEnumsFile", () => {
     expect(file?.content).toContain("parse(json: string): Priority {");
     expect(file?.content).toContain("const error = Priority.validate(input);");
     expect(file?.content).toContain(
+      "Performs structural enum validation only (membership in Priority); it does not enforce business rules.",
+    );
+    expect(file?.content).toContain(
       ['invalid value "', '{String(input)}" for Priority enum'].join("$"),
     );
     expect(file?.content).not.toContain("export function validatePriority");
     expect(file?.content).not.toContain("const PriorityValues");
     expect(file?.content).toContain("const _vdl = {");
+  });
+
+  it("omits enum validate helpers when strict mode is disabled", () => {
+    const result = createGeneratorContext({
+      input: irb.pluginInput({
+        ir: irb.schema({
+          enums: [
+            irb.enumDef("Mode", "string", [
+              irb.enumMember("On", irb.stringLiteral("on")),
+              irb.enumMember("Off", irb.stringLiteral("off")),
+            ]),
+          ],
+        }),
+      }),
+      generatorOptions: {
+        genConsts: true,
+        strict: false,
+        importExtension: "js",
+      },
+    });
+
+    const file = generateEnumsFile(expectContext(result.context));
+
+    expect(file?.content).toContain("parse(json: string): Mode {");
+    expect(file?.content).not.toContain("const error = Mode.validate(input);");
+    expect(file?.content).not.toContain("validate(input: unknown");
   });
 });
 

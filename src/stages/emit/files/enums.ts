@@ -19,7 +19,7 @@ export function generateEnumsFile(
   const g = newGenerator().withSpaces(2);
 
   for (const enumDef of context.schema.enums) {
-    renderEnum(g, enumDef);
+    renderEnum(g, enumDef, context.options.strict);
     g.break();
   }
 
@@ -35,6 +35,7 @@ export function generateEnumsFile(
 function renderEnum(
   g: ReturnType<typeof newGenerator>,
   enumDef: EnumDef,
+  strict: boolean,
 ): void {
   /**
    * Each enum is emitted as a merged type plus const namespace so consumers get
@@ -76,42 +77,50 @@ function renderEnum(
     g.break();
 
     writeDocComment(g, {
-      fallback: `Parses a JSON string into a validated and hydrated ${enumDef.name} value.`,
+      fallback: strict
+        ? `Parses a JSON string into a validated and hydrated ${enumDef.name} value.`
+        : `Parses a JSON string and hydrates it as ${enumDef.name} without runtime validation.`,
     });
     g.line(`parse(json: string): ${enumDef.name} {`);
     g.block(() => {
       g.line("const input = _vdl.parseJson(json);");
-      g.line(`const error = ${enumDef.name}.validate(input);`);
-      g.line("if (error !== null) {");
-      g.block(() => {
-        g.line("throw new Error(error);");
-      });
-      g.line("}");
+      if (strict) {
+        g.line(`const error = ${enumDef.name}.validate(input);`);
+        g.line("if (error !== null) {");
+        g.block(() => {
+          g.line("throw new Error(error);");
+        });
+        g.line("}");
+      }
       g.line(`return ${enumDef.name}.hydrate(input as ${enumDef.name});`);
     });
     g.line("},");
-    g.break();
 
-    writeDocComment(g, {
-      fallback: `Validates unknown input against the ${enumDef.name} enum values.`,
-    });
-    g.line(
-      `validate(input: unknown, path = ${JSON.stringify(enumDef.name)}): string | null {`,
-    );
-    g.block(() => {
+    if (strict) {
+      g.break();
+      writeDocComment(g, {
+        fallback: `Performs structural enum validation only (membership in ${enumDef.name}); it does not enforce business rules.`,
+      });
       g.line(
-        `if (!${enumDef.name}.values().includes(input as ${enumDef.name})) {`,
+        `validate(input: unknown, path = ${JSON.stringify(enumDef.name)}): string | null {`,
       );
       g.block(() => {
         g.line(
-          `return \`\${path}: invalid value "\${String(input)}" for ${enumDef.name} enum\`;`,
+          `if (!${enumDef.name}.values().includes(input as ${enumDef.name})) {`,
         );
+        g.block(() => {
+          g.line(
+            `return \`\${path}: invalid value "\${String(input)}" for ${enumDef.name} enum\`;`,
+          );
+        });
+        g.line("}");
+        g.line("return null;");
       });
-      g.line("}");
-      g.line("return null;");
-    });
-    g.line("},");
-    g.break();
+      g.line("},");
+      g.break();
+    } else {
+      g.break();
+    }
 
     writeDocComment(g, {
       fallback: `Hydrates a validated ${enumDef.name} value. Enums return the input unchanged to keep the generated API uniform.`,

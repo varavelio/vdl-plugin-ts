@@ -26,6 +26,7 @@ describe("generateTypesFile", () => {
       }),
       generatorOptions: {
         genConsts: true,
+        strict: true,
         importExtension: "ts",
       },
     });
@@ -37,9 +38,42 @@ describe("generateTypesFile", () => {
     expect(file?.content).toContain("export const Payload = {");
     expect(file?.content).toContain("parse(json: string): Payload {");
     expect(file?.content).toContain("const error = Payload.validate(input);");
+    expect(file?.content).toContain(
+      "Performs structural validation for Payload (required field presence and basic type shape only); it does not enforce business rules.",
+    );
     expect(file?.content).toContain("const _vdl = {");
     expect(file?.content).toContain("status: Status.hydrate(input.status),");
     expect(file?.content).not.toContain("export function validatePayload");
+  });
+
+  it("omits type validate helpers when strict mode is disabled", () => {
+    const result = createGeneratorContext({
+      input: irb.pluginInput({
+        ir: irb.schema({
+          types: [
+            irb.typeDef(
+              "Payload",
+              irb.objectType([
+                irb.field("createdAt", irb.primitiveType("datetime")),
+              ]),
+            ),
+          ],
+        }),
+      }),
+      generatorOptions: {
+        genConsts: true,
+        strict: false,
+        importExtension: "ts",
+      },
+    });
+
+    const file = generateTypesFile(expectContext(result.context));
+
+    expect(file?.content).toContain("parse(json: string): Payload {");
+    expect(file?.content).not.toContain(
+      "const error = Payload.validate(input);",
+    );
+    expect(file?.content).not.toContain("validate(input: unknown");
   });
 });
 
