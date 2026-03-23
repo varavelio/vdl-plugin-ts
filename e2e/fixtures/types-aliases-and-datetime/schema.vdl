@@ -1,0 +1,11 @@
+type UserId string
+type UserIds UserId[]
+type Labels map[string]
+type CreatedAt datetime
+
+type Account {
+  id UserId
+  createdAt CreatedAt
+  labels Labels
+  history CreatedAt[]
+}
