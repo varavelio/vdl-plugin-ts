@@ -18,7 +18,6 @@ describe("generateEnumsFile", () => {
       }),
       generatorOptions: {
         genConsts: true,
-        genMeta: true,
         importExtension: "js",
       },
     });
@@ -31,14 +30,13 @@ describe("generateEnumsFile", () => {
     expect(file?.content).toContain("values(): Priority[] {");
     expect(file?.content).toContain("return [1, 2];");
     expect(file?.content).toContain("parse(json: string): Priority {");
+    expect(file?.content).toContain("const error = Priority.validate(input);");
     expect(file?.content).toContain(
-      "const vdl_error = Priority.validate(vdl_input);",
-    );
-    expect(file?.content).toContain(
-      ["invalid value '", "{String(input)}' for Priority enum"].join("$"),
+      ['invalid value "', '{String(input)}" for Priority enum'].join("$"),
     );
     expect(file?.content).not.toContain("export function validatePriority");
     expect(file?.content).not.toContain("const PriorityValues");
+    expect(file?.content).toContain("const _vdl = {");
   });
 });
 

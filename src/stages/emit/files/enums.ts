@@ -18,11 +18,9 @@ export function generateEnumsFile(
 
   const g = newGenerator().withSpaces(2);
 
-  for (let index = 0; index < context.schema.enums.length; index += 1) {
-    renderEnum(g, context.schema.enums[index] as EnumDef);
-    if (index < context.schema.enums.length - 1) {
-      g.break();
-    }
+  for (const enumDef of context.schema.enums) {
+    renderEnum(g, enumDef);
+    g.break();
   }
 
   g.break();
@@ -65,10 +63,7 @@ function renderEnum(
   g.line(`export const ${enumDef.name} = {`);
   g.block(() => {
     renderEnumMembers(g, enumDef);
-
-    if (enumDef.members.length > 0) {
-      g.break();
-    }
+    g.break();
 
     writeDocComment(g, {
       fallback: `Returns every declared ${enumDef.name} value in definition order.`,
@@ -85,14 +80,14 @@ function renderEnum(
     });
     g.line(`parse(json: string): ${enumDef.name} {`);
     g.block(() => {
-      g.line("const vdl_input = vdl_parseJson(json);");
-      g.line(`const vdl_error = ${enumDef.name}.validate(vdl_input);`);
-      g.line("if (vdl_error !== null) {");
+      g.line("const input = _vdl.parseJson(json);");
+      g.line(`const error = ${enumDef.name}.validate(input);`);
+      g.line("if (error !== null) {");
       g.block(() => {
-        g.line("throw new Error(vdl_error);");
+        g.line("throw new Error(error);");
       });
       g.line("}");
-      g.line(`return ${enumDef.name}.hydrate(vdl_input as ${enumDef.name});`);
+      g.line(`return ${enumDef.name}.hydrate(input as ${enumDef.name});`);
     });
     g.line("},");
     g.break();
@@ -109,7 +104,7 @@ function renderEnum(
       );
       g.block(() => {
         g.line(
-          `return \`\${path}: invalid value '\${String(input)}' for ${enumDef.name} enum\`;`,
+          `return \`\${path}: invalid value "\${String(input)}" for ${enumDef.name} enum\`;`,
         );
       });
       g.line("}");
@@ -138,12 +133,7 @@ function renderEnumMembers(
    * Enum member literals live on the namespace object so consumers can use
    * value access and runtime helpers from one exported symbol.
    */
-  for (let index = 0; index < enumDef.members.length; index += 1) {
-    const member = enumDef.members[index];
-    if (!member) {
-      continue;
-    }
-
+  for (const member of enumDef.members) {
     writeDocComment(g, {
       doc: member.doc,
       annotations: member.annotations,
@@ -152,10 +142,7 @@ function renderEnumMembers(
     g.line(
       `${renderPropertyName(member.name)}: ${renderEnumMemberLiteral(member.value)} as ${enumDef.name},`,
     );
-
-    if (index < enumDef.members.length - 1) {
-      g.break();
-    }
+    g.break();
   }
 }
 
@@ -166,24 +153,32 @@ function renderEnumRuntimeHelpers(g: ReturnType<typeof newGenerator>): void {
    */
   writeDocComment(g, {
     fallback:
-      "Parses JSON text and wraps syntax failures in a stable generated error message.",
+      "Internal helpers shared by the generated enum namespaces in this file.",
   });
-  g.line("function vdl_parseJson(json: string): unknown {");
+  g.line("const _vdl = {");
   g.block(() => {
-    g.line("try {");
-    g.block(() => {
-      g.line("return JSON.parse(json);");
+    writeDocComment(g, {
+      fallback:
+        "Parses JSON text and wraps syntax failures in a stable generated error message.",
     });
-    g.line("} catch (error) {");
+    g.line("parseJson(json: string): unknown {");
     g.block(() => {
-      g.line(
-        "const vdl_message = error instanceof Error ? error.message : String(error);",
-      );
-      g.line(`throw new Error(\`Invalid JSON input: \${vdl_message}\`);`);
+      g.line("try {");
+      g.block(() => {
+        g.line("return JSON.parse(json);");
+      });
+      g.line("} catch (error) {");
+      g.block(() => {
+        g.line(
+          "const message = error instanceof Error ? error.message : String(error);",
+        );
+        g.line(`throw new Error(\`Invalid JSON input: \${message}\`);`);
+      });
+      g.line("}");
     });
-    g.line("}");
+    g.line("},");
   });
-  g.line("}");
+  g.line("} as const;");
 }
 
 function renderEnumValuesExpression(enumDef: EnumDef): string {
