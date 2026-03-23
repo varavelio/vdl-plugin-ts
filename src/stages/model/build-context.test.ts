@@ -28,7 +28,6 @@ describe("createGeneratorContext", () => {
       }),
       generatorOptions: {
         genConsts: true,
-        genMeta: true,
         importExtension: "js",
       },
     });
@@ -59,7 +58,6 @@ describe("createGeneratorContext", () => {
       }),
       generatorOptions: {
         genConsts: true,
-        genMeta: true,
         importExtension: "js",
       },
     });

@@ -13,8 +13,6 @@ import type { ImportExtension } from "../../shared/imports";
 export interface GeneratorOptions {
   /** Whether to emit `constants.ts` when constants exist. */
   genConsts: boolean;
-  /** Whether to emit `metadata.ts` with runtime schema metadata. */
-  genMeta: boolean;
   /** Import extension strategy for generated internal imports. */
   importExtension: ImportExtension;
 }
