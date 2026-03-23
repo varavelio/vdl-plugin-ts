@@ -133,7 +133,7 @@ function renderEnumMembers(
    * Enum member literals live on the namespace object so consumers can use
    * value access and runtime helpers from one exported symbol.
    */
-  for (const member of enumDef.members) {
+  for (const [index, member] of enumDef.members.entries()) {
     writeDocComment(g, {
       doc: member.doc,
       annotations: member.annotations,
@@ -142,7 +142,9 @@ function renderEnumMembers(
     g.line(
       `${renderPropertyName(member.name)}: ${renderEnumMemberLiteral(member.value)} as ${enumDef.name},`,
     );
-    g.break();
+    if (index < enumDef.members.length - 1) {
+      g.break();
+    }
   }
 }
 
