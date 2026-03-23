@@ -38,12 +38,9 @@ export function generateTypesFile(
     g.break();
   }
 
-  for (let index = 0; index < context.exportedTypes.length; index += 1) {
-    renderNamedType(g, context.exportedTypes[index] as TypeDef, context);
-
-    if (index < context.exportedTypes.length - 1) {
-      g.break();
-    }
+  for (const typeDef of context.exportedTypes) {
+    renderNamedType(g, typeDef, context);
+    g.break();
   }
 
   g.break();
@@ -127,14 +124,14 @@ function renderTypeNamespace(
     });
     g.line(`parse(json: string): ${typeDef.name} {`);
     g.block(() => {
-      g.line("const vdl_input = vdl_parseJson(json);");
-      g.line(`const vdl_error = ${typeDef.name}.validate(vdl_input);`);
-      g.line("if (vdl_error !== null) {");
+      g.line("const input = _vdl.parseJson(json);");
+      g.line(`const error = ${typeDef.name}.validate(input);`);
+      g.line("if (error !== null) {");
       g.block(() => {
-        g.line("throw new Error(vdl_error);");
+        g.line("throw new Error(error);");
       });
       g.line("}");
-      g.line(`return ${typeDef.name}.hydrate(vdl_input as ${typeDef.name});`);
+      g.line(`return ${typeDef.name}.hydrate(input as ${typeDef.name});`);
     });
     g.line("},");
     g.break();
@@ -183,19 +180,19 @@ function renderHydrationExpression(
   switch (typeRef.kind) {
     case "primitive":
       return typeRef.primitiveName === "datetime"
-        ? `vdl_hydrateDateInput(${valueExpression})`
+        ? `_vdl.hydrateDateInput(${valueExpression})`
         : valueExpression;
     case "enum":
       return `${typeRef.enumName}.hydrate(${valueExpression})`;
     case "type":
       return `${typeRef.typeName}.hydrate(${valueExpression})`;
     case "array": {
-      const itemName = `vdl_item${depth}`;
+      const itemName = `item${depth}`;
       return `${valueExpression}.map((${itemName}) => ${renderHydrationExpression(getArrayItemType(typeRef), itemName, depth + 1)})`;
     }
     case "map": {
-      const keyName = `vdl_key${depth}`;
-      const mapValueName = `vdl_value${depth}`;
+      const keyName = `key${depth}`;
+      const mapValueName = `value${depth}`;
       return `Object.fromEntries(Object.entries(${valueExpression}).map(([${keyName}, ${mapValueName}]) => [${keyName}, ${renderHydrationExpression(typeRef.mapType as TypeRef, mapValueName, depth + 1)}]))`;
     }
     case "object": {
@@ -260,11 +257,11 @@ function writeValidationStatements(
       g.line("{");
       g.block(() => {
         g.line(
-          `const vdl_error = ${options.typeRef.enumName}.validate(${options.valueExpression}, ${options.pathExpression});`,
+          `const error = ${options.typeRef.enumName}.validate(${options.valueExpression}, ${options.pathExpression});`,
         );
-        g.line("if (vdl_error !== null) {");
+        g.line("if (error !== null) {");
         g.block(() => {
-          g.line("return vdl_error;");
+          g.line("return error;");
         });
         g.line("}");
       });
@@ -274,11 +271,11 @@ function writeValidationStatements(
       g.line("{");
       g.block(() => {
         g.line(
-          `const vdl_error = ${options.typeRef.typeName}.validate(${options.valueExpression}, ${options.pathExpression});`,
+          `const error = ${options.typeRef.typeName}.validate(${options.valueExpression}, ${options.pathExpression});`,
         );
-        g.line("if (vdl_error !== null) {");
+        g.line("if (error !== null) {");
         g.block(() => {
-          g.line("return vdl_error;");
+          g.line("return error;");
         });
         g.line("}");
       });
@@ -286,13 +283,13 @@ function writeValidationStatements(
       return;
     case "array": {
       const itemType = getArrayItemType(options.typeRef);
-      const indexName = `vdl_index${options.depth}`;
-      const itemPathName = `vdl_itemPath${options.depth}`;
+      const indexName = `index${options.depth}`;
+      const itemPathName = `itemPath${options.depth}`;
 
       g.line(`if (!Array.isArray(${options.valueExpression})) {`);
       g.block(() => {
         g.line(
-          `return \`\${${options.pathExpression}}: expected array, got \${vdl_describeValue(${options.valueExpression})}\`;`,
+          `return \`\${${options.pathExpression}}: expected array, got \${_vdl.describeValue(${options.valueExpression})}\`;`,
         );
       });
       g.line("}");
@@ -314,14 +311,14 @@ function writeValidationStatements(
       return;
     }
     case "map": {
-      const keyName = `vdl_key${options.depth}`;
-      const valueName = `vdl_value${options.depth}`;
-      const valuePathName = `vdl_valuePath${options.depth}`;
+      const keyName = `key${options.depth}`;
+      const valueName = `value${options.depth}`;
+      const valuePathName = `valuePath${options.depth}`;
 
-      g.line(`if (!vdl_isRecord(${options.valueExpression})) {`);
+      g.line(`if (!_vdl.isRecord(${options.valueExpression})) {`);
       g.block(() => {
         g.line(
-          `return \`\${${options.pathExpression}}: expected object, got \${vdl_describeValue(${options.valueExpression})}\`;`,
+          `return \`\${${options.pathExpression}}: expected object, got \${_vdl.describeValue(${options.valueExpression})}\`;`,
         );
       });
       g.line("}");
@@ -343,11 +340,11 @@ function writeValidationStatements(
       return;
     }
     case "object": {
-      const recordName = `vdl_record${options.depth}`;
-      g.line(`if (!vdl_isRecord(${options.valueExpression})) {`);
+      const recordName = `record${options.depth}`;
+      g.line(`if (!_vdl.isRecord(${options.valueExpression})) {`);
       g.block(() => {
         g.line(
-          `return \`\${${options.pathExpression}}: expected object, got \${vdl_describeValue(${options.valueExpression})}\`;`,
+          `return \`\${${options.pathExpression}}: expected object, got \${_vdl.describeValue(${options.valueExpression})}\`;`,
         );
       });
       g.line("}");
@@ -361,7 +358,7 @@ function writeValidationStatements(
         fieldIndex += 1
       ) {
         const field = options.typeRef.objectFields?.[fieldIndex] as Field;
-        const fieldPathName = `vdl_fieldPath${options.depth}_${fieldIndex}`;
+        const fieldPathName = `fieldPath${options.depth}_${fieldIndex}`;
         const fieldValueExpression = renderRecordAccess(recordName, field.name);
 
         g.line(
@@ -370,7 +367,7 @@ function writeValidationStatements(
 
         if (!field.optional) {
           g.line(
-            `if (!vdl_hasOwn(${recordName}, ${JSON.stringify(field.name)}) || ${fieldValueExpression} === undefined) {`,
+            `if (!_vdl.hasOwn(${recordName}, ${JSON.stringify(field.name)}) || ${fieldValueExpression} === undefined) {`,
           );
           g.block(() => {
             g.line(
@@ -388,7 +385,7 @@ function writeValidationStatements(
         }
 
         g.line(
-          `if (vdl_hasOwn(${recordName}, ${JSON.stringify(field.name)}) && ${fieldValueExpression} !== undefined) {`,
+          `if (_vdl.hasOwn(${recordName}, ${JSON.stringify(field.name)}) && ${fieldValueExpression} !== undefined) {`,
         );
         g.block(() => {
           writeValidationStatements(g, {
@@ -422,7 +419,7 @@ function writePrimitiveValidation(
       g.line(`if (typeof ${valueExpression} !== "string") {`);
       g.block(() => {
         g.line(
-          `return \`\${${pathExpression}}: expected string, got \${vdl_describeValue(${valueExpression})}\`;`,
+          `return \`\${${pathExpression}}: expected string, got \${_vdl.describeValue(${valueExpression})}\`;`,
         );
       });
       g.line("}");
@@ -434,7 +431,7 @@ function writePrimitiveValidation(
       );
       g.block(() => {
         g.line(
-          `return \`\${${pathExpression}}: expected number, got \${vdl_describeValue(${valueExpression})}\`;`,
+          `return \`\${${pathExpression}}: expected number, got \${_vdl.describeValue(${valueExpression})}\`;`,
         );
       });
       g.line("}");
@@ -443,16 +440,16 @@ function writePrimitiveValidation(
       g.line(`if (typeof ${valueExpression} !== "boolean") {`);
       g.block(() => {
         g.line(
-          `return \`\${${pathExpression}}: expected boolean, got \${vdl_describeValue(${valueExpression})}\`;`,
+          `return \`\${${pathExpression}}: expected boolean, got \${_vdl.describeValue(${valueExpression})}\`;`,
         );
       });
       g.line("}");
       return;
     case "datetime":
-      g.line(`if (!vdl_isValidDateInput(${valueExpression})) {`);
+      g.line(`if (!_vdl.isValidDateInput(${valueExpression})) {`);
       g.block(() => {
         g.line(
-          `return \`\${${pathExpression}}: expected datetime string or Date, got \${vdl_describeValue(${valueExpression})}\`;`,
+          `return \`\${${pathExpression}}: expected datetime string or Date, got \${_vdl.describeValue(${valueExpression})}\`;`,
         );
       });
       g.line("}");
@@ -469,113 +466,115 @@ function renderRuntimeHelpers(g: ReturnType<typeof newGenerator>): void {
    */
   writeDocComment(g, {
     fallback:
-      "Parses JSON text and wraps syntax failures in a stable generated error message.",
+      "Internal helpers shared by the generated runtime namespaces in this file.",
   });
-  g.line("function vdl_parseJson(json: string): unknown {");
+  g.line("const _vdl = {");
   g.block(() => {
-    g.line("try {");
-    g.block(() => {
-      g.line("return JSON.parse(json);");
+    writeDocComment(g, {
+      fallback:
+        "Parses JSON text and wraps syntax failures in a stable generated error message.",
     });
-    g.line("} catch (error) {");
+    g.line("parseJson(json: string): unknown {");
+    g.block(() => {
+      g.line("try {");
+      g.block(() => {
+        g.line("return JSON.parse(json);");
+      });
+      g.line("} catch (error) {");
+      g.block(() => {
+        g.line(
+          "const message = error instanceof Error ? error.message : String(error);",
+        );
+        g.line(`throw new Error(\`Invalid JSON input: \${message}\`);`);
+      });
+      g.line("}");
+    });
+    g.line("},");
+    g.break();
+
+    writeDocComment(g, {
+      fallback:
+        "Checks whether a value can be validated as a plain object record.",
+    });
+    g.line("isRecord(value: unknown): value is Record<string, unknown> {");
     g.block(() => {
       g.line(
-        "const vdl_message = error instanceof Error ? error.message : String(error);",
+        'return typeof value === "object" && value !== null && !Array.isArray(value) && !(value instanceof Date);',
       );
-      g.line(`throw new Error(\`Invalid JSON input: \${vdl_message}\`);`);
     });
-    g.line("}");
-  });
-  g.line("}");
-  g.break();
+    g.line("},");
+    g.break();
 
-  writeDocComment(g, {
-    fallback:
-      "Checks whether a value can be validated as a plain object record.",
-  });
-  g.line(
-    "function vdl_isRecord(value: unknown): value is Record<string, unknown> {",
-  );
-  g.block(() => {
-    g.line(
-      'return typeof value === "object" && value !== null && !Array.isArray(value) && !(value instanceof Date);',
-    );
-  });
-  g.line("}");
-  g.break();
+    writeDocComment(g, {
+      fallback:
+        "Checks whether a record defines a property directly on the current object.",
+    });
+    g.line("hasOwn(record: Record<string, unknown>, key: string): boolean {");
+    g.block(() => {
+      g.line("return Object.prototype.hasOwnProperty.call(record, key);");
+    });
+    g.line("},");
+    g.break();
 
-  writeDocComment(g, {
-    fallback:
-      "Checks whether a record defines a property directly on the current object.",
-  });
-  g.line(
-    "function vdl_hasOwn(record: Record<string, unknown>, key: string): boolean {",
-  );
-  g.block(() => {
-    g.line("return Object.prototype.hasOwnProperty.call(record, key);");
-  });
-  g.line("}");
-  g.break();
+    writeDocComment(g, {
+      fallback:
+        "Describes an input value using the categories reported by generated validation errors.",
+    });
+    g.line("describeValue(value: unknown): string {");
+    g.block(() => {
+      g.line("if (value === null) {");
+      g.block(() => {
+        g.line('return "null";');
+      });
+      g.line("}");
+      g.line("if (Array.isArray(value)) {");
+      g.block(() => {
+        g.line('return "array";');
+      });
+      g.line("}");
+      g.line("if (value instanceof Date) {");
+      g.block(() => {
+        g.line('return "Date";');
+      });
+      g.line("}");
+      g.line("return typeof value;");
+    });
+    g.line("},");
+    g.break();
 
-  writeDocComment(g, {
-    fallback:
-      "Describes an input value using the categories reported by generated validation errors.",
-  });
-  g.line("function vdl_describeValue(value: unknown): string {");
-  g.block(() => {
-    g.line("if (value === null) {");
-    g.block(() => {
-      g.line('return "null";');
+    writeDocComment(g, {
+      fallback:
+        "Checks whether an input can be hydrated into a valid Date instance.",
     });
-    g.line("}");
-    g.line("if (Array.isArray(value)) {");
+    g.line("isValidDateInput(value: unknown): value is string | Date {");
     g.block(() => {
-      g.line('return "array";');
+      g.line("if (value instanceof Date) {");
+      g.block(() => {
+        g.line("return !Number.isNaN(value.getTime());");
+      });
+      g.line("}");
+      g.line('if (typeof value !== "string") {');
+      g.block(() => {
+        g.line("return false;");
+      });
+      g.line("}");
+      g.line("return !Number.isNaN(new Date(value).getTime());");
     });
-    g.line("}");
-    g.line("if (value instanceof Date) {");
-    g.block(() => {
-      g.line('return "Date";');
-    });
-    g.line("}");
-    g.line("return typeof value;");
-  });
-  g.line("}");
-  g.break();
+    g.line("},");
+    g.break();
 
-  writeDocComment(g, {
-    fallback:
-      "Checks whether an input can be hydrated into a valid Date instance.",
-  });
-  g.line(
-    "function vdl_isValidDateInput(value: unknown): value is string | Date {",
-  );
-  g.block(() => {
-    g.line("if (value instanceof Date) {");
-    g.block(() => {
-      g.line("return !Number.isNaN(value.getTime());");
+    writeDocComment(g, {
+      fallback: "Hydrates a string or Date input into a fresh Date instance.",
     });
-    g.line("}");
-    g.line('if (typeof value !== "string") {');
+    g.line("hydrateDateInput(value: string | Date): Date {");
     g.block(() => {
-      g.line("return false;");
+      g.line(
+        "return value instanceof Date ? new Date(value.getTime()) : new Date(value);",
+      );
     });
-    g.line("}");
-    g.line("return !Number.isNaN(new Date(value).getTime());");
+    g.line("},");
   });
-  g.line("}");
-  g.break();
-
-  writeDocComment(g, {
-    fallback: "Hydrates a string or Date input into a fresh Date instance.",
-  });
-  g.line("function vdl_hydrateDateInput(value: string | Date): Date {");
-  g.block(() => {
-    g.line(
-      "return value instanceof Date ? new Date(value.getTime()) : new Date(value);",
-    );
-  });
-  g.line("}");
+  g.line("} as const;");
 }
 
 function typeRefMapValue(typeRef: TypeRef): TypeRef {

@@ -26,7 +26,6 @@ describe("generateTypesFile", () => {
       }),
       generatorOptions: {
         genConsts: true,
-        genMeta: true,
         importExtension: "ts",
       },
     });
@@ -37,9 +36,8 @@ describe("generateTypesFile", () => {
     expect(file?.content).toContain("createdAt: Date;");
     expect(file?.content).toContain("export const Payload = {");
     expect(file?.content).toContain("parse(json: string): Payload {");
-    expect(file?.content).toContain(
-      "const vdl_error = Payload.validate(vdl_input);",
-    );
+    expect(file?.content).toContain("const error = Payload.validate(input);");
+    expect(file?.content).toContain("const _vdl = {");
     expect(file?.content).toContain("status: Status.hydrate(input.status),");
     expect(file?.content).not.toContain("export function validatePayload");
   });
