@@ -16,12 +16,7 @@ export function generateConstantsFile(
   }
   const g = newGenerator().withSpaces(2);
 
-  for (let index = 0; index < context.constants.length; index += 1) {
-    const constant = context.constants[index];
-    if (!constant) {
-      continue;
-    }
-
+  for (const constant of context.constants) {
     writeDocComment(g, {
       doc: constant.def.doc,
       annotations: constant.def.annotations,
@@ -30,10 +25,7 @@ export function generateConstantsFile(
     g.line(
       `export const ${constant.def.name} = ${renderLiteralValueExpression(constant.typeRef, constant.def.value, context)} as const;`,
     );
-
-    if (index < context.constants.length - 1) {
-      g.break();
-    }
+    g.break();
   }
 
   return {

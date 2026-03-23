@@ -27,7 +27,6 @@ describe("generateConstantsFile", () => {
       }),
       generatorOptions: {
         genConsts: true,
-        genMeta: true,
         importExtension: "ts",
       },
     });
