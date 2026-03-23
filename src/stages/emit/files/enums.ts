@@ -59,13 +59,6 @@ function renderEnum(
   }
   g.break();
 
-  g.line(
-    `const ${enumDef.name}Values: ${enumDef.name}[] = [${enumDef.members
-      .map((member) => renderEnumMemberLiteral(member.value))
-      .join(", ")}];`,
-  );
-  g.break();
-
   writeDocComment(g, {
     fallback: `${enumDef.name} exposes the generated enum values and runtime helpers for ${enumDef.name}.`,
   });
@@ -82,7 +75,7 @@ function renderEnum(
     });
     g.line(`values(): ${enumDef.name}[] {`);
     g.block(() => {
-      g.line(`return [...${enumDef.name}Values];`);
+      g.line(`return ${renderEnumValuesExpression(enumDef)};`);
     });
     g.line("},");
     g.break();
@@ -92,14 +85,14 @@ function renderEnum(
     });
     g.line(`parse(json: string): ${enumDef.name} {`);
     g.block(() => {
-      g.line("const input = parseJson(json);");
-      g.line(`const error = ${enumDef.name}.validate(input);`);
-      g.line("if (error !== null) {");
+      g.line("const vdl_input = vdl_parseJson(json);");
+      g.line(`const vdl_error = ${enumDef.name}.validate(vdl_input);`);
+      g.line("if (vdl_error !== null) {");
       g.block(() => {
-        g.line("throw new Error(error);");
+        g.line("throw new Error(vdl_error);");
       });
       g.line("}");
-      g.line(`return ${enumDef.name}.hydrate(input as ${enumDef.name});`);
+      g.line(`return ${enumDef.name}.hydrate(vdl_input as ${enumDef.name});`);
     });
     g.line("},");
     g.break();
@@ -112,11 +105,11 @@ function renderEnum(
     );
     g.block(() => {
       g.line(
-        `if (!${enumDef.name}Values.includes(input as ${enumDef.name})) {`,
+        `if (!${enumDef.name}.values().includes(input as ${enumDef.name})) {`,
       );
       g.block(() => {
         g.line(
-          `return \`\${path}: invalid enum value '\${String(input)}' for ${enumDef.name}\`;`,
+          `return \`\${path}: invalid value '\${String(input)}' for ${enumDef.name} enum\`;`,
         );
       });
       g.line("}");
@@ -175,7 +168,7 @@ function renderEnumRuntimeHelpers(g: ReturnType<typeof newGenerator>): void {
     fallback:
       "Parses JSON text and wraps syntax failures in a stable generated error message.",
   });
-  g.line("function parseJson(json: string): unknown {");
+  g.line("function vdl_parseJson(json: string): unknown {");
   g.block(() => {
     g.line("try {");
     g.block(() => {
@@ -184,13 +177,21 @@ function renderEnumRuntimeHelpers(g: ReturnType<typeof newGenerator>): void {
     g.line("} catch (error) {");
     g.block(() => {
       g.line(
-        "const message = error instanceof Error ? error.message : String(error);",
+        "const vdl_message = error instanceof Error ? error.message : String(error);",
       );
-      g.line(`throw new Error(\`Invalid JSON input: \${message}\`);`);
+      g.line(`throw new Error(\`Invalid JSON input: \${vdl_message}\`);`);
     });
     g.line("}");
   });
   g.line("}");
+}
+
+function renderEnumValuesExpression(enumDef: EnumDef): string {
+  /**
+   * Enum namespaces expose values through a method instead of a sibling helper
+   * constant so generated top-level names stay minimal.
+   */
+  return `[${enumDef.members.map((member) => renderEnumMemberLiteral(member.value)).join(", ")}]`;
 }
 
 function renderEnumMemberLiteral(
