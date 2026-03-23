@@ -8,7 +8,7 @@ const DEFAULT_DEPRECATED_MESSAGE =
 /**
  * Extracts the effective deprecation message from an annotation list.
  */
-export function getDeprecatedMessage(
+function getDeprecatedMessage(
   annotations: Annotation[] | undefined,
 ): string | undefined {
   const deprecated = ir.getAnnotation(annotations, "deprecated");

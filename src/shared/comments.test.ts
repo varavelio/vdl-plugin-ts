@@ -1,23 +1,33 @@
 import { newGenerator } from "@varavel/gen";
 import { irb } from "@varavel/vdl-plugin-sdk/testing";
 import { describe, expect, it } from "vitest";
-import { getDeprecatedMessage, writeDocComment } from "./comments";
+import { writeDocComment } from "./comments";
 
 describe("comments", () => {
-  it("extracts an explicit deprecated message", () => {
-    expect(
-      getDeprecatedMessage([
+  it("writes explicit deprecated messages into the generated JSDoc", () => {
+    const g = newGenerator().withSpaces(2);
+
+    writeDocComment(g, {
+      annotations: [
         irb.annotation(
           "deprecated",
           irb.stringLiteral("Use NewThing instead."),
         ),
-      ]),
-    ).toBe("Use NewThing instead.");
+      ],
+    });
+
+    expect(g.toString()).toContain(" * @deprecated Use NewThing instead.");
   });
 
-  it("falls back to the generic deprecated message", () => {
-    expect(getDeprecatedMessage([irb.annotation("deprecated")])).toBe(
-      "This symbol is deprecated and should not be used in new code.",
+  it("falls back to the generic deprecated message when none is provided", () => {
+    const g = newGenerator().withSpaces(2);
+
+    writeDocComment(g, {
+      annotations: [irb.annotation("deprecated")],
+    });
+
+    expect(g.toString()).toContain(
+      " * @deprecated This symbol is deprecated and should not be used in new code.",
     );
   });
 
