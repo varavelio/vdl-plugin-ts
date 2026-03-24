@@ -1,0 +1,11 @@
+type ShapeProbe {
+  count int
+  ratio float
+  enabled bool
+  title string
+  nested {
+    id string
+  }
+  values int[]
+  labels map[string]
+}
