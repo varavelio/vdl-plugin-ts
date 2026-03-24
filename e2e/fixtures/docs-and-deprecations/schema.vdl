@@ -1,0 +1,23 @@
+""" Status models delivery lifecycle. """
+@deprecated("Use LifecycleStatus instead.")
+enum Status {
+  """ Item is ready. """
+  Ready = "ready"
+
+  @deprecated
+  Retired = "retired"
+}
+
+""" Payload describes an API payload. """
+@deprecated
+type Payload {
+  """ Name used in logs. """
+  @deprecated("Use displayName instead.")
+  name string
+
+  status Status
+}
+
+""" API version returned by this service. """
+@deprecated("Use apiVersionV2 instead.")
+const apiVersion = "1.0.0"
