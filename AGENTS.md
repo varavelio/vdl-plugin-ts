@@ -51,8 +51,10 @@ When updating this document, do so with the context of the entire document in mi
 - Required-field validation must use presence checks, not truthiness checks.
 - `strict` defaults to `true`; when set to `false`, generated `parse` helpers skip validation and runtime `validate` methods are not emitted.
 - Generated types and enums should prefer declaration merging (`export type X` + `export const X`) over loose top-level helper exports.
+- Generated runtime code must stay compatible with ES6 library baselines; avoid emitting APIs like `Object.entries`, `Object.fromEntries`, or `Array.prototype.includes` directly in generated files.
+- When a newer runtime convenience would simplify generated code, prefer local `_vdl` helper methods that implement equivalent ES6-safe behavior.
 - E2E fixtures should stay focused: one fixture folder per behavior cluster, each with a small `main.ts` assertion script.
 - E2E fixture assertions should use shared helpers from `e2e/helpers/index.ts` (including error assertions and generated-file checks) instead of redefining local helpers in each fixture.
-- Keep the E2E matrix broad: cover includes/spreads, nested map/array/object combinations, doc/deprecation emission, option fallbacks, and output-file presence/absence checks.
+- Keep the E2E matrix broad: cover includes/spreads, nested map/array/object combinations, doc/deprecation emission, option fallbacks, output-file presence/absence checks, and a fixture that type-checks generated output with `tsc --noEmit` under an ES6-only `tsconfig`.
 - Trust the IR provided by VDL directly. Do not duplicate compiler cleanup steps for duplicate object fields or similar guarantees inside the plugin.
 - The current SDK IR surface used by this generator is focused on constants, enums, and types. RPC generation is intentionally out of scope for this version.
