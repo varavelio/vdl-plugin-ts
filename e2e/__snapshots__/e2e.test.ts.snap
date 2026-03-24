@@ -69,7 +69,9 @@ export const DateMap = {
     if (!_vdl.isRecord(input)) {
       return \`\${path}: expected object, got \${_vdl.describeValue(input)}\`;
     }
-    for (const [key0, value0] of Object.entries(input)) {
+    for (const entry0 of _vdl.recordEntries(input)) {
+      const key0 = entry0[0];
+      const value0 = entry0[1];
       const valuePath0 = \`\${path}[\${JSON.stringify(key0)}]\`;
       if (!_vdl.isValidDateInput(value0)) {
         return \`\${valuePath0}: expected datetime string or Date, got \${_vdl.describeValue(value0)}\`;
@@ -82,7 +84,7 @@ export const DateMap = {
    * Hydrates a validated DateMap value into its runtime representation.
    */
   hydrate(input: DateMap): DateMap {
-    return Object.fromEntries(Object.entries(input).map(([key0, value0]) => [key0, _vdl.hydrateDateInput(value0)]));
+    return _vdl.mapRecord(input, (value0, key0) => _vdl.hydrateDateInput(value0));
   },
 } as const;
 
@@ -100,6 +102,32 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Returns own enumerable entries from a record in insertion order.
+   */
+  recordEntries<TValue>(record: Record<string, TValue>): Array<[string, TValue]> {
+    const entries: Array<[string, TValue]> = [];
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        entries.push([key, record[key]]);
+      }
+    }
+    return entries;
+  },
+
+  /**
+   * Creates a new record by mapping every own enumerable value.
+   */
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+    const output: Record<string, TOutput> = {};
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        output[key] = mapValue(record[key], key);
+      }
+    }
+    return output;
   },
 
   /**
@@ -306,7 +334,7 @@ export const Status = {
    * Performs structural enum validation only (membership in Status); it does not enforce business rules.
    */
   validate(input: unknown, path = "Status"): string | null {
-    if (!Status.values().includes(input as Status)) {
+    if (!_vdl.arrayIncludes(Status.values(), input)) {
       return \`\${path}: invalid value "\${String(input)}" for Status enum\`;
     }
     return null;
@@ -334,6 +362,18 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Checks whether an array contains a value using strict equality.
+   */
+  arrayIncludes<TValue>(values: TValue[], value: unknown): value is TValue {
+    for (let index = 0; index < values.length; index += 1) {
+      if (values[index] === value) {
+        return true;
+      }
+    }
+    return false;
   },
 } as const;"
 `;
@@ -420,7 +460,9 @@ export const Schedule = {
     if (!_vdl.isRecord(record0["byId"])) {
       return \`\${fieldPath0_2}: expected object, got \${_vdl.describeValue(record0["byId"])}\`;
     }
-    for (const [key1, value1] of Object.entries(record0["byId"])) {
+    for (const entry1 of _vdl.recordEntries(record0["byId"])) {
+      const key1 = entry1[0];
+      const value1 = entry1[1];
       const valuePath1 = \`\${fieldPath0_2}[\${JSON.stringify(key1)}]\`;
       if (!_vdl.isValidDateInput(value1)) {
         return \`\${valuePath1}: expected datetime string or Date, got \${_vdl.describeValue(value1)}\`;
@@ -436,7 +478,7 @@ export const Schedule = {
     return {
       startsAt: _vdl.hydrateDateInput(input.startsAt),
       checkpoints: input.checkpoints.map((item1) => _vdl.hydrateDateInput(item1)),
-      byId: Object.fromEntries(Object.entries(input.byId).map(([key1, value1]) => [key1, _vdl.hydrateDateInput(value1)])),
+      byId: _vdl.mapRecord(input.byId, (value1, key1) => _vdl.hydrateDateInput(value1)),
     };
   },
 } as const;
@@ -455,6 +497,32 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Returns own enumerable entries from a record in insertion order.
+   */
+  recordEntries<TValue>(record: Record<string, TValue>): Array<[string, TValue]> {
+    const entries: Array<[string, TValue]> = [];
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        entries.push([key, record[key]]);
+      }
+    }
+    return entries;
+  },
+
+  /**
+   * Creates a new record by mapping every own enumerable value.
+   */
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+    const output: Record<string, TOutput> = {};
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        output[key] = mapValue(record[key], key);
+      }
+    }
+    return output;
   },
 
   /**
@@ -573,7 +641,7 @@ export const Status = {
    * Performs structural enum validation only (membership in Status); it does not enforce business rules.
    */
   validate(input: unknown, path = "Status"): string | null {
-    if (!Status.values().includes(input as Status)) {
+    if (!_vdl.arrayIncludes(Status.values(), input)) {
       return \`\${path}: invalid value "\${String(input)}" for Status enum\`;
     }
     return null;
@@ -601,6 +669,18 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Checks whether an array contains a value using strict equality.
+   */
+  arrayIncludes<TValue>(values: TValue[], value: unknown): value is TValue {
+    for (let index = 0; index < values.length; index += 1) {
+      if (values[index] === value) {
+        return true;
+      }
+    }
+    return false;
   },
 } as const;"
 `;
@@ -709,6 +789,32 @@ const _vdl = {
   },
 
   /**
+   * Returns own enumerable entries from a record in insertion order.
+   */
+  recordEntries<TValue>(record: Record<string, TValue>): Array<[string, TValue]> {
+    const entries: Array<[string, TValue]> = [];
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        entries.push([key, record[key]]);
+      }
+    }
+    return entries;
+  },
+
+  /**
+   * Creates a new record by mapping every own enumerable value.
+   */
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+    const output: Record<string, TOutput> = {};
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        output[key] = mapValue(record[key], key);
+      }
+    }
+    return output;
+  },
+
+  /**
    * Checks whether a value can be validated as a plain object record.
    */
   isRecord(value: unknown): value is Record<string, unknown> {
@@ -798,7 +904,7 @@ export const Nothing = {
    * Performs structural enum validation only (membership in Nothing); it does not enforce business rules.
    */
   validate(input: unknown, path = "Nothing"): string | null {
-    if (!Nothing.values().includes(input as Nothing)) {
+    if (!_vdl.arrayIncludes(Nothing.values(), input)) {
       return \`\${path}: invalid value "\${String(input)}" for Nothing enum\`;
     }
     return null;
@@ -826,6 +932,18 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Checks whether an array contains a value using strict equality.
+   */
+  arrayIncludes<TValue>(values: TValue[], value: unknown): value is TValue {
+    for (let index = 0; index < values.length; index += 1) {
+      if (values[index] === value) {
+        return true;
+      }
+    }
+    return false;
   },
 } as const;"
 `;
@@ -913,6 +1031,32 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Returns own enumerable entries from a record in insertion order.
+   */
+  recordEntries<TValue>(record: Record<string, TValue>): Array<[string, TValue]> {
+    const entries: Array<[string, TValue]> = [];
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        entries.push([key, record[key]]);
+      }
+    }
+    return entries;
+  },
+
+  /**
+   * Creates a new record by mapping every own enumerable value.
+   */
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+    const output: Record<string, TOutput> = {};
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        output[key] = mapValue(record[key], key);
+      }
+    }
+    return output;
   },
 
   /**
@@ -1019,7 +1163,7 @@ export const DeliveryState = {
    * Performs structural enum validation only (membership in DeliveryState); it does not enforce business rules.
    */
   validate(input: unknown, path = "DeliveryState"): string | null {
-    if (!DeliveryState.values().includes(input as DeliveryState)) {
+    if (!_vdl.arrayIncludes(DeliveryState.values(), input)) {
       return \`\${path}: invalid value "\${String(input)}" for DeliveryState enum\`;
     }
     return null;
@@ -1075,7 +1219,7 @@ export const Priority = {
    * Performs structural enum validation only (membership in Priority); it does not enforce business rules.
    */
   validate(input: unknown, path = "Priority"): string | null {
-    if (!Priority.values().includes(input as Priority)) {
+    if (!_vdl.arrayIncludes(Priority.values(), input)) {
       return \`\${path}: invalid value "\${String(input)}" for Priority enum\`;
     }
     return null;
@@ -1104,6 +1248,18 @@ const _vdl = {
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
   },
+
+  /**
+   * Checks whether an array contains a value using strict equality.
+   */
+  arrayIncludes<TValue>(values: TValue[], value: unknown): value is TValue {
+    for (let index = 0; index < values.length; index += 1) {
+      if (values[index] === value) {
+        return true;
+      }
+    }
+    return false;
+  },
 } as const;"
 `;
 
@@ -1113,6 +1269,830 @@ exports[`VDL Plugin TS e2e > compiles fixture: enums-runtime > index.ts 1`] = `
 // biome-ignore-all lint: Generated by VDL
 
 export * from "./enums.ts";"
+`;
+
+exports[`VDL Plugin TS e2e > compiles fixture: es6-max-compat > constants.ts 1`] = `
+"/* eslint-disable */
+/* tslint:disable */
+// biome-ignore-all lint: Generated by VDL
+
+/**
+ * defaultRole holds a generated VDL constant.
+ */
+export const defaultRole = "viewer" as const;
+
+/**
+ * enabled holds a generated VDL constant.
+ */
+export const enabled = true as const;
+
+/**
+ * labels holds a generated VDL constant.
+ */
+export const labels = {
+  "env": "ci",
+  "region": "global"
+} as const;
+
+/**
+ * maxRetries holds a generated VDL constant.
+ */
+export const maxRetries = 3 as const;
+
+/**
+ * priorities holds a generated VDL constant.
+ */
+export const priorities = [
+  1,
+  2
+] as const;"
+`;
+
+exports[`VDL Plugin TS e2e > compiles fixture: es6-max-compat > enums.ts 1`] = `
+"/* eslint-disable */
+/* tslint:disable */
+// biome-ignore-all lint: Generated by VDL
+
+/**
+ * Priority declares a generated VDL enum.
+ */
+export type Priority = 1 | 2;
+
+/**
+ * Priority exposes the generated enum values and runtime helpers for Priority.
+ */
+export const Priority = {
+  /**
+   * Represents the Low member of the Priority enum.
+   */
+  Low: 1 as Priority,
+
+  /**
+   * Represents the High member of the Priority enum.
+   */
+  High: 2 as Priority,
+
+  /**
+   * Returns every declared Priority value in definition order.
+   */
+  values(): Priority[] {
+    return [1, 2];
+  },
+
+  /**
+   * Parses a JSON string into a validated and hydrated Priority value.
+   */
+  parse(json: string): Priority {
+    const input = _vdl.parseJson(json);
+    const error = Priority.validate(input);
+    if (error !== null) {
+      throw new Error(error);
+    }
+    return Priority.hydrate(input as Priority);
+  },
+
+  /**
+   * Performs structural enum validation only (membership in Priority); it does not enforce business rules.
+   */
+  validate(input: unknown, path = "Priority"): string | null {
+    if (!_vdl.arrayIncludes(Priority.values(), input)) {
+      return \`\${path}: invalid value "\${String(input)}" for Priority enum\`;
+    }
+    return null;
+  },
+
+  /**
+   * Hydrates a validated Priority value. Enums return the input unchanged to keep the generated API uniform.
+   */
+  hydrate(input: Priority): Priority {
+    return input;
+  },
+} as const;
+
+/**
+ * Role declares a generated VDL enum.
+ */
+export type Role = "viewer" | "admin";
+
+/**
+ * Role exposes the generated enum values and runtime helpers for Role.
+ */
+export const Role = {
+  /**
+   * Represents the Viewer member of the Role enum.
+   */
+  Viewer: "viewer" as Role,
+
+  /**
+   * Represents the Admin member of the Role enum.
+   */
+  Admin: "admin" as Role,
+
+  /**
+   * Returns every declared Role value in definition order.
+   */
+  values(): Role[] {
+    return ["viewer", "admin"];
+  },
+
+  /**
+   * Parses a JSON string into a validated and hydrated Role value.
+   */
+  parse(json: string): Role {
+    const input = _vdl.parseJson(json);
+    const error = Role.validate(input);
+    if (error !== null) {
+      throw new Error(error);
+    }
+    return Role.hydrate(input as Role);
+  },
+
+  /**
+   * Performs structural enum validation only (membership in Role); it does not enforce business rules.
+   */
+  validate(input: unknown, path = "Role"): string | null {
+    if (!_vdl.arrayIncludes(Role.values(), input)) {
+      return \`\${path}: invalid value "\${String(input)}" for Role enum\`;
+    }
+    return null;
+  },
+
+  /**
+   * Hydrates a validated Role value. Enums return the input unchanged to keep the generated API uniform.
+   */
+  hydrate(input: Role): Role {
+    return input;
+  },
+} as const;
+
+/**
+ * Internal helpers shared by the generated enum namespaces in this file.
+ */
+const _vdl = {
+  /**
+   * Parses JSON text and wraps syntax failures in a stable generated error message.
+   */
+  parseJson(json: string): unknown {
+    try {
+      return JSON.parse(json);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(\`Invalid JSON input: \${message}\`);
+    }
+  },
+
+  /**
+   * Checks whether an array contains a value using strict equality.
+   */
+  arrayIncludes<TValue>(values: TValue[], value: unknown): value is TValue {
+    for (let index = 0; index < values.length; index += 1) {
+      if (values[index] === value) {
+        return true;
+      }
+    }
+    return false;
+  },
+} as const;"
+`;
+
+exports[`VDL Plugin TS e2e > compiles fixture: es6-max-compat > index.ts 1`] = `
+"/* eslint-disable */
+/* tslint:disable */
+// biome-ignore-all lint: Generated by VDL
+
+export * from "./enums.ts";
+export * from "./types.ts";
+export * from "./constants.ts";"
+`;
+
+exports[`VDL Plugin TS e2e > compiles fixture: es6-max-compat > types.ts 1`] = `
+"/* eslint-disable */
+/* tslint:disable */
+// biome-ignore-all lint: Generated by VDL
+
+import { Priority, Role } from "./enums.ts";
+
+/**
+ * Payload represents a generated VDL object.
+ */
+export type Payload = {
+  profile: Profile;
+  byId: ProfileMap;
+  grid: ProfileGrid;
+  roleHistory: Record<string, Role[]>;
+};
+
+/**
+ * Payload exposes the generated runtime helpers for Payload.
+ */
+export const Payload = {
+  /**
+   * Parses a JSON string into a validated and hydrated Payload value.
+   */
+  parse(json: string): Payload {
+    const input = _vdl.parseJson(json);
+    const error = Payload.validate(input);
+    if (error !== null) {
+      throw new Error(error);
+    }
+    return Payload.hydrate(input as Payload);
+  },
+
+  /**
+   * Performs structural validation for Payload (required field presence and basic type shape only); it does not enforce business rules.
+   */
+  validate(input: unknown, path = "Payload"): string | null {
+    if (!_vdl.isRecord(input)) {
+      return \`\${path}: expected object, got \${_vdl.describeValue(input)}\`;
+    }
+    const record0 = input as Record<string, unknown>;
+    const fieldPath0_0 = \`\${path}.profile\`;
+    if (!_vdl.hasOwn(record0, "profile") || record0["profile"] === undefined) {
+      return \`\${fieldPath0_0}: required field is missing\`;
+    }
+    {
+      const error = Profile.validate(record0["profile"], fieldPath0_0);
+      if (error !== null) {
+        return error;
+      }
+    }
+    const fieldPath0_1 = \`\${path}.byId\`;
+    if (!_vdl.hasOwn(record0, "byId") || record0["byId"] === undefined) {
+      return \`\${fieldPath0_1}: required field is missing\`;
+    }
+    {
+      const error = ProfileMap.validate(record0["byId"], fieldPath0_1);
+      if (error !== null) {
+        return error;
+      }
+    }
+    const fieldPath0_2 = \`\${path}.grid\`;
+    if (!_vdl.hasOwn(record0, "grid") || record0["grid"] === undefined) {
+      return \`\${fieldPath0_2}: required field is missing\`;
+    }
+    {
+      const error = ProfileGrid.validate(record0["grid"], fieldPath0_2);
+      if (error !== null) {
+        return error;
+      }
+    }
+    const fieldPath0_3 = \`\${path}.roleHistory\`;
+    if (!_vdl.hasOwn(record0, "roleHistory") || record0["roleHistory"] === undefined) {
+      return \`\${fieldPath0_3}: required field is missing\`;
+    }
+    if (!_vdl.isRecord(record0["roleHistory"])) {
+      return \`\${fieldPath0_3}: expected object, got \${_vdl.describeValue(record0["roleHistory"])}\`;
+    }
+    for (const entry1 of _vdl.recordEntries(record0["roleHistory"])) {
+      const key1 = entry1[0];
+      const value1 = entry1[1];
+      const valuePath1 = \`\${fieldPath0_3}[\${JSON.stringify(key1)}]\`;
+      if (!Array.isArray(value1)) {
+        return \`\${valuePath1}: expected array, got \${_vdl.describeValue(value1)}\`;
+      }
+      for (let index2 = 0; index2 < value1.length; index2 += 1) {
+        const itemPath2 = \`\${valuePath1}[\${index2}]\`;
+        {
+          const error = Role.validate(value1[index2], itemPath2);
+          if (error !== null) {
+            return error;
+          }
+        }
+      }
+    }
+    return null;
+  },
+
+  /**
+   * Hydrates a validated Payload value into its runtime representation.
+   */
+  hydrate(input: Payload): Payload {
+    return {
+      profile: Profile.hydrate(input.profile),
+      byId: ProfileMap.hydrate(input.byId),
+      grid: ProfileGrid.hydrate(input.grid),
+      roleHistory: _vdl.mapRecord(input.roleHistory, (value1, key1) => value1.map((item2) => Role.hydrate(item2))),
+    };
+  },
+} as const;
+
+/**
+ * Profile represents a generated VDL object.
+ */
+export type Profile = {
+  name: string;
+  active: boolean;
+  age: number;
+  score: number;
+  createdAt: Date;
+  role: Role;
+  priority: Priority;
+  aliases?: Record<string, string>;
+  history: Record<string, Date[]>;
+  sessions: Session[];
+  nested: ProfileNested;
+};
+
+/**
+ * Profile exposes the generated runtime helpers for Profile.
+ */
+export const Profile = {
+  /**
+   * Parses a JSON string into a validated and hydrated Profile value.
+   */
+  parse(json: string): Profile {
+    const input = _vdl.parseJson(json);
+    const error = Profile.validate(input);
+    if (error !== null) {
+      throw new Error(error);
+    }
+    return Profile.hydrate(input as Profile);
+  },
+
+  /**
+   * Performs structural validation for Profile (required field presence and basic type shape only); it does not enforce business rules.
+   */
+  validate(input: unknown, path = "Profile"): string | null {
+    if (!_vdl.isRecord(input)) {
+      return \`\${path}: expected object, got \${_vdl.describeValue(input)}\`;
+    }
+    const record0 = input as Record<string, unknown>;
+    const fieldPath0_0 = \`\${path}.name\`;
+    if (!_vdl.hasOwn(record0, "name") || record0["name"] === undefined) {
+      return \`\${fieldPath0_0}: required field is missing\`;
+    }
+    if (typeof record0["name"] !== "string") {
+      return \`\${fieldPath0_0}: expected string, got \${_vdl.describeValue(record0["name"])}\`;
+    }
+    const fieldPath0_1 = \`\${path}.active\`;
+    if (!_vdl.hasOwn(record0, "active") || record0["active"] === undefined) {
+      return \`\${fieldPath0_1}: required field is missing\`;
+    }
+    if (typeof record0["active"] !== "boolean") {
+      return \`\${fieldPath0_1}: expected boolean, got \${_vdl.describeValue(record0["active"])}\`;
+    }
+    const fieldPath0_2 = \`\${path}.age\`;
+    if (!_vdl.hasOwn(record0, "age") || record0["age"] === undefined) {
+      return \`\${fieldPath0_2}: required field is missing\`;
+    }
+    if (typeof record0["age"] !== "number" || !Number.isFinite(record0["age"])) {
+      return \`\${fieldPath0_2}: expected number, got \${_vdl.describeValue(record0["age"])}\`;
+    }
+    const fieldPath0_3 = \`\${path}.score\`;
+    if (!_vdl.hasOwn(record0, "score") || record0["score"] === undefined) {
+      return \`\${fieldPath0_3}: required field is missing\`;
+    }
+    if (typeof record0["score"] !== "number" || !Number.isFinite(record0["score"])) {
+      return \`\${fieldPath0_3}: expected number, got \${_vdl.describeValue(record0["score"])}\`;
+    }
+    const fieldPath0_4 = \`\${path}.createdAt\`;
+    if (!_vdl.hasOwn(record0, "createdAt") || record0["createdAt"] === undefined) {
+      return \`\${fieldPath0_4}: required field is missing\`;
+    }
+    if (!_vdl.isValidDateInput(record0["createdAt"])) {
+      return \`\${fieldPath0_4}: expected datetime string or Date, got \${_vdl.describeValue(record0["createdAt"])}\`;
+    }
+    const fieldPath0_5 = \`\${path}.role\`;
+    if (!_vdl.hasOwn(record0, "role") || record0["role"] === undefined) {
+      return \`\${fieldPath0_5}: required field is missing\`;
+    }
+    {
+      const error = Role.validate(record0["role"], fieldPath0_5);
+      if (error !== null) {
+        return error;
+      }
+    }
+    const fieldPath0_6 = \`\${path}.priority\`;
+    if (!_vdl.hasOwn(record0, "priority") || record0["priority"] === undefined) {
+      return \`\${fieldPath0_6}: required field is missing\`;
+    }
+    {
+      const error = Priority.validate(record0["priority"], fieldPath0_6);
+      if (error !== null) {
+        return error;
+      }
+    }
+    const fieldPath0_7 = \`\${path}.aliases\`;
+    if (_vdl.hasOwn(record0, "aliases") && record0["aliases"] !== undefined) {
+      if (!_vdl.isRecord(record0["aliases"])) {
+        return \`\${fieldPath0_7}: expected object, got \${_vdl.describeValue(record0["aliases"])}\`;
+      }
+      for (const entry1 of _vdl.recordEntries(record0["aliases"])) {
+        const key1 = entry1[0];
+        const value1 = entry1[1];
+        const valuePath1 = \`\${fieldPath0_7}[\${JSON.stringify(key1)}]\`;
+        if (typeof value1 !== "string") {
+          return \`\${valuePath1}: expected string, got \${_vdl.describeValue(value1)}\`;
+        }
+      }
+    }
+    const fieldPath0_8 = \`\${path}.history\`;
+    if (!_vdl.hasOwn(record0, "history") || record0["history"] === undefined) {
+      return \`\${fieldPath0_8}: required field is missing\`;
+    }
+    if (!_vdl.isRecord(record0["history"])) {
+      return \`\${fieldPath0_8}: expected object, got \${_vdl.describeValue(record0["history"])}\`;
+    }
+    for (const entry1 of _vdl.recordEntries(record0["history"])) {
+      const key1 = entry1[0];
+      const value1 = entry1[1];
+      const valuePath1 = \`\${fieldPath0_8}[\${JSON.stringify(key1)}]\`;
+      if (!Array.isArray(value1)) {
+        return \`\${valuePath1}: expected array, got \${_vdl.describeValue(value1)}\`;
+      }
+      for (let index2 = 0; index2 < value1.length; index2 += 1) {
+        const itemPath2 = \`\${valuePath1}[\${index2}]\`;
+        if (!_vdl.isValidDateInput(value1[index2])) {
+          return \`\${itemPath2}: expected datetime string or Date, got \${_vdl.describeValue(value1[index2])}\`;
+        }
+      }
+    }
+    const fieldPath0_9 = \`\${path}.sessions\`;
+    if (!_vdl.hasOwn(record0, "sessions") || record0["sessions"] === undefined) {
+      return \`\${fieldPath0_9}: required field is missing\`;
+    }
+    if (!Array.isArray(record0["sessions"])) {
+      return \`\${fieldPath0_9}: expected array, got \${_vdl.describeValue(record0["sessions"])}\`;
+    }
+    for (let index1 = 0; index1 < record0["sessions"].length; index1 += 1) {
+      const itemPath1 = \`\${fieldPath0_9}[\${index1}]\`;
+      {
+        const error = Session.validate(record0["sessions"][index1], itemPath1);
+        if (error !== null) {
+          return error;
+        }
+      }
+    }
+    const fieldPath0_10 = \`\${path}.nested\`;
+    if (!_vdl.hasOwn(record0, "nested") || record0["nested"] === undefined) {
+      return \`\${fieldPath0_10}: required field is missing\`;
+    }
+    {
+      const error = ProfileNested.validate(record0["nested"], fieldPath0_10);
+      if (error !== null) {
+        return error;
+      }
+    }
+    return null;
+  },
+
+  /**
+   * Hydrates a validated Profile value into its runtime representation.
+   */
+  hydrate(input: Profile): Profile {
+    return {
+      name: input.name,
+      active: input.active,
+      age: input.age,
+      score: input.score,
+      createdAt: _vdl.hydrateDateInput(input.createdAt),
+      role: Role.hydrate(input.role),
+      priority: Priority.hydrate(input.priority),
+      aliases: input.aliases === undefined ? undefined : _vdl.mapRecord(input.aliases, (value1, key1) => value1),
+      history: _vdl.mapRecord(input.history, (value1, key1) => value1.map((item2) => _vdl.hydrateDateInput(item2))),
+      sessions: input.sessions.map((item1) => Session.hydrate(item1)),
+      nested: ProfileNested.hydrate(input.nested),
+    };
+  },
+} as const;
+
+/**
+ * ProfileNested represents a generated VDL object.
+ */
+export type ProfileNested = {
+  note: string;
+  flags: boolean[];
+};
+
+/**
+ * ProfileNested exposes the generated runtime helpers for ProfileNested.
+ */
+export const ProfileNested = {
+  /**
+   * Parses a JSON string into a validated and hydrated ProfileNested value.
+   */
+  parse(json: string): ProfileNested {
+    const input = _vdl.parseJson(json);
+    const error = ProfileNested.validate(input);
+    if (error !== null) {
+      throw new Error(error);
+    }
+    return ProfileNested.hydrate(input as ProfileNested);
+  },
+
+  /**
+   * Performs structural validation for ProfileNested (required field presence and basic type shape only); it does not enforce business rules.
+   */
+  validate(input: unknown, path = "ProfileNested"): string | null {
+    if (!_vdl.isRecord(input)) {
+      return \`\${path}: expected object, got \${_vdl.describeValue(input)}\`;
+    }
+    const record0 = input as Record<string, unknown>;
+    const fieldPath0_0 = \`\${path}.note\`;
+    if (!_vdl.hasOwn(record0, "note") || record0["note"] === undefined) {
+      return \`\${fieldPath0_0}: required field is missing\`;
+    }
+    if (typeof record0["note"] !== "string") {
+      return \`\${fieldPath0_0}: expected string, got \${_vdl.describeValue(record0["note"])}\`;
+    }
+    const fieldPath0_1 = \`\${path}.flags\`;
+    if (!_vdl.hasOwn(record0, "flags") || record0["flags"] === undefined) {
+      return \`\${fieldPath0_1}: required field is missing\`;
+    }
+    if (!Array.isArray(record0["flags"])) {
+      return \`\${fieldPath0_1}: expected array, got \${_vdl.describeValue(record0["flags"])}\`;
+    }
+    for (let index1 = 0; index1 < record0["flags"].length; index1 += 1) {
+      const itemPath1 = \`\${fieldPath0_1}[\${index1}]\`;
+      if (typeof record0["flags"][index1] !== "boolean") {
+        return \`\${itemPath1}: expected boolean, got \${_vdl.describeValue(record0["flags"][index1])}\`;
+      }
+    }
+    return null;
+  },
+
+  /**
+   * Hydrates a validated ProfileNested value into its runtime representation.
+   */
+  hydrate(input: ProfileNested): ProfileNested {
+    return {
+      note: input.note,
+      flags: input.flags.map((item1) => item1),
+    };
+  },
+} as const;
+
+/**
+ * ProfileGrid represents a generated VDL type alias.
+ */
+export type ProfileGrid = Profile[][];
+
+/**
+ * ProfileGrid exposes the generated runtime helpers for ProfileGrid.
+ */
+export const ProfileGrid = {
+  /**
+   * Parses a JSON string into a validated and hydrated ProfileGrid value.
+   */
+  parse(json: string): ProfileGrid {
+    const input = _vdl.parseJson(json);
+    const error = ProfileGrid.validate(input);
+    if (error !== null) {
+      throw new Error(error);
+    }
+    return ProfileGrid.hydrate(input as ProfileGrid);
+  },
+
+  /**
+   * Performs structural validation for ProfileGrid (required field presence and basic type shape only); it does not enforce business rules.
+   */
+  validate(input: unknown, path = "ProfileGrid"): string | null {
+    if (!Array.isArray(input)) {
+      return \`\${path}: expected array, got \${_vdl.describeValue(input)}\`;
+    }
+    for (let index0 = 0; index0 < input.length; index0 += 1) {
+      const itemPath0 = \`\${path}[\${index0}]\`;
+      if (!Array.isArray(input[index0])) {
+        return \`\${itemPath0}: expected array, got \${_vdl.describeValue(input[index0])}\`;
+      }
+      for (let index1 = 0; index1 < input[index0].length; index1 += 1) {
+        const itemPath1 = \`\${itemPath0}[\${index1}]\`;
+        {
+          const error = Profile.validate(input[index0][index1], itemPath1);
+          if (error !== null) {
+            return error;
+          }
+        }
+      }
+    }
+    return null;
+  },
+
+  /**
+   * Hydrates a validated ProfileGrid value into its runtime representation.
+   */
+  hydrate(input: ProfileGrid): ProfileGrid {
+    return input.map((item0) => item0.map((item1) => Profile.hydrate(item1)));
+  },
+} as const;
+
+/**
+ * ProfileMap represents a generated VDL type alias.
+ */
+export type ProfileMap = Record<string, Profile>;
+
+/**
+ * ProfileMap exposes the generated runtime helpers for ProfileMap.
+ */
+export const ProfileMap = {
+  /**
+   * Parses a JSON string into a validated and hydrated ProfileMap value.
+   */
+  parse(json: string): ProfileMap {
+    const input = _vdl.parseJson(json);
+    const error = ProfileMap.validate(input);
+    if (error !== null) {
+      throw new Error(error);
+    }
+    return ProfileMap.hydrate(input as ProfileMap);
+  },
+
+  /**
+   * Performs structural validation for ProfileMap (required field presence and basic type shape only); it does not enforce business rules.
+   */
+  validate(input: unknown, path = "ProfileMap"): string | null {
+    if (!_vdl.isRecord(input)) {
+      return \`\${path}: expected object, got \${_vdl.describeValue(input)}\`;
+    }
+    for (const entry0 of _vdl.recordEntries(input)) {
+      const key0 = entry0[0];
+      const value0 = entry0[1];
+      const valuePath0 = \`\${path}[\${JSON.stringify(key0)}]\`;
+      {
+        const error = Profile.validate(value0, valuePath0);
+        if (error !== null) {
+          return error;
+        }
+      }
+    }
+    return null;
+  },
+
+  /**
+   * Hydrates a validated ProfileMap value into its runtime representation.
+   */
+  hydrate(input: ProfileMap): ProfileMap {
+    return _vdl.mapRecord(input, (value0, key0) => Profile.hydrate(value0));
+  },
+} as const;
+
+/**
+ * Session represents a generated VDL object.
+ */
+export type Session = {
+  id: string;
+  startedAt: Date;
+  tags: string[];
+};
+
+/**
+ * Session exposes the generated runtime helpers for Session.
+ */
+export const Session = {
+  /**
+   * Parses a JSON string into a validated and hydrated Session value.
+   */
+  parse(json: string): Session {
+    const input = _vdl.parseJson(json);
+    const error = Session.validate(input);
+    if (error !== null) {
+      throw new Error(error);
+    }
+    return Session.hydrate(input as Session);
+  },
+
+  /**
+   * Performs structural validation for Session (required field presence and basic type shape only); it does not enforce business rules.
+   */
+  validate(input: unknown, path = "Session"): string | null {
+    if (!_vdl.isRecord(input)) {
+      return \`\${path}: expected object, got \${_vdl.describeValue(input)}\`;
+    }
+    const record0 = input as Record<string, unknown>;
+    const fieldPath0_0 = \`\${path}.id\`;
+    if (!_vdl.hasOwn(record0, "id") || record0["id"] === undefined) {
+      return \`\${fieldPath0_0}: required field is missing\`;
+    }
+    if (typeof record0["id"] !== "string") {
+      return \`\${fieldPath0_0}: expected string, got \${_vdl.describeValue(record0["id"])}\`;
+    }
+    const fieldPath0_1 = \`\${path}.startedAt\`;
+    if (!_vdl.hasOwn(record0, "startedAt") || record0["startedAt"] === undefined) {
+      return \`\${fieldPath0_1}: required field is missing\`;
+    }
+    if (!_vdl.isValidDateInput(record0["startedAt"])) {
+      return \`\${fieldPath0_1}: expected datetime string or Date, got \${_vdl.describeValue(record0["startedAt"])}\`;
+    }
+    const fieldPath0_2 = \`\${path}.tags\`;
+    if (!_vdl.hasOwn(record0, "tags") || record0["tags"] === undefined) {
+      return \`\${fieldPath0_2}: required field is missing\`;
+    }
+    if (!Array.isArray(record0["tags"])) {
+      return \`\${fieldPath0_2}: expected array, got \${_vdl.describeValue(record0["tags"])}\`;
+    }
+    for (let index1 = 0; index1 < record0["tags"].length; index1 += 1) {
+      const itemPath1 = \`\${fieldPath0_2}[\${index1}]\`;
+      if (typeof record0["tags"][index1] !== "string") {
+        return \`\${itemPath1}: expected string, got \${_vdl.describeValue(record0["tags"][index1])}\`;
+      }
+    }
+    return null;
+  },
+
+  /**
+   * Hydrates a validated Session value into its runtime representation.
+   */
+  hydrate(input: Session): Session {
+    return {
+      id: input.id,
+      startedAt: _vdl.hydrateDateInput(input.startedAt),
+      tags: input.tags.map((item1) => item1),
+    };
+  },
+} as const;
+
+/**
+ * Internal helpers shared by the generated runtime namespaces in this file.
+ */
+const _vdl = {
+  /**
+   * Parses JSON text and wraps syntax failures in a stable generated error message.
+   */
+  parseJson(json: string): unknown {
+    try {
+      return JSON.parse(json);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      throw new Error(\`Invalid JSON input: \${message}\`);
+    }
+  },
+
+  /**
+   * Returns own enumerable entries from a record in insertion order.
+   */
+  recordEntries<TValue>(record: Record<string, TValue>): Array<[string, TValue]> {
+    const entries: Array<[string, TValue]> = [];
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        entries.push([key, record[key]]);
+      }
+    }
+    return entries;
+  },
+
+  /**
+   * Creates a new record by mapping every own enumerable value.
+   */
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+    const output: Record<string, TOutput> = {};
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        output[key] = mapValue(record[key], key);
+      }
+    }
+    return output;
+  },
+
+  /**
+   * Checks whether a value can be validated as a plain object record.
+   */
+  isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null && !Array.isArray(value) && !(value instanceof Date);
+  },
+
+  /**
+   * Checks whether a record defines a property directly on the current object.
+   */
+  hasOwn(record: Record<string, unknown>, key: string): boolean {
+    return Object.prototype.hasOwnProperty.call(record, key);
+  },
+
+  /**
+   * Describes an input value using the categories reported by generated validation errors.
+   */
+  describeValue(value: unknown): string {
+    if (value === null) {
+      return "null";
+    }
+    if (Array.isArray(value)) {
+      return "array";
+    }
+    if (value instanceof Date) {
+      return "Date";
+    }
+    return typeof value;
+  },
+
+  /**
+   * Checks whether an input can be hydrated into a valid Date instance.
+   */
+  isValidDateInput(value: unknown): value is string | Date {
+    if (value instanceof Date) {
+      return !Number.isNaN(value.getTime());
+    }
+    if (typeof value !== "string") {
+      return false;
+    }
+    return !Number.isNaN(new Date(value).getTime());
+  },
+
+  /**
+   * Hydrates a string or Date input into a fresh Date instance.
+   */
+  hydrateDateInput(value: string | Date): Date {
+    return value instanceof Date ? new Date(value.getTime()) : new Date(value);
+  },
+} as const;"
 `;
 
 exports[`VDL Plugin TS e2e > compiles fixture: export-none > index.ts 1`] = `
@@ -1176,7 +2156,7 @@ export const Status = {
    * Performs structural enum validation only (membership in Status); it does not enforce business rules.
    */
   validate(input: unknown, path = "Status"): string | null {
-    if (!Status.values().includes(input as Status)) {
+    if (!_vdl.arrayIncludes(Status.values(), input)) {
       return \`\${path}: invalid value "\${String(input)}" for Status enum\`;
     }
     return null;
@@ -1204,6 +2184,18 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Checks whether an array contains a value using strict equality.
+   */
+  arrayIncludes<TValue>(values: TValue[], value: unknown): value is TValue {
+    for (let index = 0; index < values.length; index += 1) {
+      if (values[index] === value) {
+        return true;
+      }
+    }
+    return false;
   },
 } as const;"
 `;
@@ -1293,6 +2285,32 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Returns own enumerable entries from a record in insertion order.
+   */
+  recordEntries<TValue>(record: Record<string, TValue>): Array<[string, TValue]> {
+    const entries: Array<[string, TValue]> = [];
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        entries.push([key, record[key]]);
+      }
+    }
+    return entries;
+  },
+
+  /**
+   * Creates a new record by mapping every own enumerable value.
+   */
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+    const output: Record<string, TOutput> = {};
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        output[key] = mapValue(record[key], key);
+      }
+    }
+    return output;
   },
 
   /**
@@ -1400,7 +2418,7 @@ export const Status = {
    * Performs structural enum validation only (membership in Status); it does not enforce business rules.
    */
   validate(input: unknown, path = "Status"): string | null {
-    if (!Status.values().includes(input as Status)) {
+    if (!_vdl.arrayIncludes(Status.values(), input)) {
       return \`\${path}: invalid value "\${String(input)}" for Status enum\`;
     }
     return null;
@@ -1428,6 +2446,18 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Checks whether an array contains a value using strict equality.
+   */
+  arrayIncludes<TValue>(values: TValue[], value: unknown): value is TValue {
+    for (let index = 0; index < values.length; index += 1) {
+      if (values[index] === value) {
+        return true;
+      }
+    }
+    return false;
   },
 } as const;"
 `;
@@ -1526,6 +2556,32 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Returns own enumerable entries from a record in insertion order.
+   */
+  recordEntries<TValue>(record: Record<string, TValue>): Array<[string, TValue]> {
+    const entries: Array<[string, TValue]> = [];
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        entries.push([key, record[key]]);
+      }
+    }
+    return entries;
+  },
+
+  /**
+   * Creates a new record by mapping every own enumerable value.
+   */
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+    const output: Record<string, TOutput> = {};
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        output[key] = mapValue(record[key], key);
+      }
+    }
+    return output;
   },
 
   /**
@@ -1633,7 +2689,7 @@ export const Status = {
    * Performs structural enum validation only (membership in Status); it does not enforce business rules.
    */
   validate(input: unknown, path = "Status"): string | null {
-    if (!Status.values().includes(input as Status)) {
+    if (!_vdl.arrayIncludes(Status.values(), input)) {
       return \`\${path}: invalid value "\${String(input)}" for Status enum\`;
     }
     return null;
@@ -1661,6 +2717,18 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Checks whether an array contains a value using strict equality.
+   */
+  arrayIncludes<TValue>(values: TValue[], value: unknown): value is TValue {
+    for (let index = 0; index < values.length; index += 1) {
+      if (values[index] === value) {
+        return true;
+      }
+    }
+    return false;
   },
 } as const;"
 `;
@@ -1759,6 +2827,32 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Returns own enumerable entries from a record in insertion order.
+   */
+  recordEntries<TValue>(record: Record<string, TValue>): Array<[string, TValue]> {
+    const entries: Array<[string, TValue]> = [];
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        entries.push([key, record[key]]);
+      }
+    }
+    return entries;
+  },
+
+  /**
+   * Creates a new record by mapping every own enumerable value.
+   */
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+    const output: Record<string, TOutput> = {};
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        output[key] = mapValue(record[key], key);
+      }
+    }
+    return output;
   },
 
   /**
@@ -1866,7 +2960,7 @@ export const Status = {
    * Performs structural enum validation only (membership in Status); it does not enforce business rules.
    */
   validate(input: unknown, path = "Status"): string | null {
-    if (!Status.values().includes(input as Status)) {
+    if (!_vdl.arrayIncludes(Status.values(), input)) {
       return \`\${path}: invalid value "\${String(input)}" for Status enum\`;
     }
     return null;
@@ -1894,6 +2988,18 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Checks whether an array contains a value using strict equality.
+   */
+  arrayIncludes<TValue>(values: TValue[], value: unknown): value is TValue {
+    for (let index = 0; index < values.length; index += 1) {
+      if (values[index] === value) {
+        return true;
+      }
+    }
+    return false;
   },
 } as const;"
 `;
@@ -1992,6 +3098,32 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Returns own enumerable entries from a record in insertion order.
+   */
+  recordEntries<TValue>(record: Record<string, TValue>): Array<[string, TValue]> {
+    const entries: Array<[string, TValue]> = [];
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        entries.push([key, record[key]]);
+      }
+    }
+    return entries;
+  },
+
+  /**
+   * Creates a new record by mapping every own enumerable value.
+   */
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+    const output: Record<string, TOutput> = {};
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        output[key] = mapValue(record[key], key);
+      }
+    }
+    return output;
   },
 
   /**
@@ -2136,7 +3268,7 @@ export const AllRole = {
    * Performs structural enum validation only (membership in AllRole); it does not enforce business rules.
    */
   validate(input: unknown, path = "AllRole"): string | null {
-    if (!AllRole.values().includes(input as AllRole)) {
+    if (!_vdl.arrayIncludes(AllRole.values(), input)) {
       return \`\${path}: invalid value "\${String(input)}" for AllRole enum\`;
     }
     return null;
@@ -2192,7 +3324,7 @@ export const StandardRole = {
    * Performs structural enum validation only (membership in StandardRole); it does not enforce business rules.
    */
   validate(input: unknown, path = "StandardRole"): string | null {
-    if (!StandardRole.values().includes(input as StandardRole)) {
+    if (!_vdl.arrayIncludes(StandardRole.values(), input)) {
       return \`\${path}: invalid value "\${String(input)}" for StandardRole enum\`;
     }
     return null;
@@ -2220,6 +3352,18 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Checks whether an array contains a value using strict equality.
+   */
+  arrayIncludes<TValue>(values: TValue[], value: unknown): value is TValue {
+    for (let index = 0; index < values.length; index += 1) {
+      if (values[index] === value) {
+        return true;
+      }
+    }
+    return false;
   },
 } as const;"
 `;
@@ -2399,6 +3543,32 @@ const _vdl = {
   },
 
   /**
+   * Returns own enumerable entries from a record in insertion order.
+   */
+  recordEntries<TValue>(record: Record<string, TValue>): Array<[string, TValue]> {
+    const entries: Array<[string, TValue]> = [];
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        entries.push([key, record[key]]);
+      }
+    }
+    return entries;
+  },
+
+  /**
+   * Creates a new record by mapping every own enumerable value.
+   */
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+    const output: Record<string, TOutput> = {};
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        output[key] = mapValue(record[key], key);
+      }
+    }
+    return output;
+  },
+
+  /**
    * Checks whether a value can be validated as a plain object record.
    */
   isRecord(value: unknown): value is Record<string, unknown> {
@@ -2497,7 +3667,7 @@ export const Mode = {
    * Performs structural enum validation only (membership in Mode); it does not enforce business rules.
    */
   validate(input: unknown, path = "Mode"): string | null {
-    if (!Mode.values().includes(input as Mode)) {
+    if (!_vdl.arrayIncludes(Mode.values(), input)) {
       return \`\${path}: invalid value "\${String(input)}" for Mode enum\`;
     }
     return null;
@@ -2525,6 +3695,18 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Checks whether an array contains a value using strict equality.
+   */
+  arrayIncludes<TValue>(values: TValue[], value: unknown): value is TValue {
+    for (let index = 0; index < values.length; index += 1) {
+      if (values[index] === value) {
+        return true;
+      }
+    }
+    return false;
   },
 } as const;"
 `;
@@ -2622,6 +3804,32 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Returns own enumerable entries from a record in insertion order.
+   */
+  recordEntries<TValue>(record: Record<string, TValue>): Array<[string, TValue]> {
+    const entries: Array<[string, TValue]> = [];
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        entries.push([key, record[key]]);
+      }
+    }
+    return entries;
+  },
+
+  /**
+   * Creates a new record by mapping every own enumerable value.
+   */
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+    const output: Record<string, TOutput> = {};
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        output[key] = mapValue(record[key], key);
+      }
+    }
+    return output;
   },
 
   /**
@@ -2723,7 +3931,7 @@ export const Flag = {
    * Performs structural enum validation only (membership in Flag); it does not enforce business rules.
    */
   validate(input: unknown, path = "Flag"): string | null {
-    if (!Flag.values().includes(input as Flag)) {
+    if (!_vdl.arrayIncludes(Flag.values(), input)) {
       return \`\${path}: invalid value "\${String(input)}" for Flag enum\`;
     }
     return null;
@@ -2751,6 +3959,18 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Checks whether an array contains a value using strict equality.
+   */
+  arrayIncludes<TValue>(values: TValue[], value: unknown): value is TValue {
+    for (let index = 0; index < values.length; index += 1) {
+      if (values[index] === value) {
+        return true;
+      }
+    }
+    return false;
   },
 } as const;"
 `;
@@ -2799,7 +4019,9 @@ export const Bucket = {
     if (!_vdl.isRecord(input)) {
       return \`\${path}: expected object, got \${_vdl.describeValue(input)}\`;
     }
-    for (const [key0, value0] of Object.entries(input)) {
+    for (const entry0 of _vdl.recordEntries(input)) {
+      const key0 = entry0[0];
+      const value0 = entry0[1];
       const valuePath0 = \`\${path}[\${JSON.stringify(key0)}]\`;
       if (!Array.isArray(value0)) {
         return \`\${valuePath0}: expected array, got \${_vdl.describeValue(value0)}\`;
@@ -2818,7 +4040,7 @@ export const Bucket = {
    * Hydrates a validated Bucket value into its runtime representation.
    */
   hydrate(input: Bucket): Bucket {
-    return Object.fromEntries(Object.entries(input).map(([key0, value0]) => [key0, value0.map((item1) => item1)]));
+    return _vdl.mapRecord(input, (value0, key0) => value0.map((item1) => item1));
   },
 } as const;
 
@@ -2928,12 +4150,16 @@ export const Layered = {
     if (!_vdl.isRecord(input)) {
       return \`\${path}: expected object, got \${_vdl.describeValue(input)}\`;
     }
-    for (const [key0, value0] of Object.entries(input)) {
+    for (const entry0 of _vdl.recordEntries(input)) {
+      const key0 = entry0[0];
+      const value0 = entry0[1];
       const valuePath0 = \`\${path}[\${JSON.stringify(key0)}]\`;
       if (!_vdl.isRecord(value0)) {
         return \`\${valuePath0}: expected object, got \${_vdl.describeValue(value0)}\`;
       }
-      for (const [key1, value1] of Object.entries(value0)) {
+      for (const entry1 of _vdl.recordEntries(value0)) {
+        const key1 = entry1[0];
+        const value1 = entry1[1];
         const valuePath1 = \`\${valuePath0}[\${JSON.stringify(key1)}]\`;
         if (!Array.isArray(value1)) {
           return \`\${valuePath1}: expected array, got \${_vdl.describeValue(value1)}\`;
@@ -2956,7 +4182,7 @@ export const Layered = {
    * Hydrates a validated Layered value into its runtime representation.
    */
   hydrate(input: Layered): Layered {
-    return Object.fromEntries(Object.entries(input).map(([key0, value0]) => [key0, Object.fromEntries(Object.entries(value0).map(([key1, value1]) => [key1, value1.map((item2) => Flag.hydrate(item2))]))]));
+    return _vdl.mapRecord(input, (value0, key0) => _vdl.mapRecord(value0, (value1, key1) => value1.map((item2) => Flag.hydrate(item2))));
   },
 } as const;
 
@@ -3025,6 +4251,32 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Returns own enumerable entries from a record in insertion order.
+   */
+  recordEntries<TValue>(record: Record<string, TValue>): Array<[string, TValue]> {
+    const entries: Array<[string, TValue]> = [];
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        entries.push([key, record[key]]);
+      }
+    }
+    return entries;
+  },
+
+  /**
+   * Creates a new record by mapping every own enumerable value.
+   */
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+    const output: Record<string, TOutput> = {};
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        output[key] = mapValue(record[key], key);
+      }
+    }
+    return output;
   },
 
   /**
@@ -3130,7 +4382,9 @@ export const Container = {
     if (!_vdl.isRecord(record0["items"])) {
       return \`\${fieldPath0_0}: expected object, got \${_vdl.describeValue(record0["items"])}\`;
     }
-    for (const [key1, value1] of Object.entries(record0["items"])) {
+    for (const entry1 of _vdl.recordEntries(record0["items"])) {
+      const key1 = entry1[0];
+      const value1 = entry1[1];
       const valuePath1 = \`\${fieldPath0_0}[\${JSON.stringify(key1)}]\`;
       {
         const error = ContainerItemsValue.validate(value1, valuePath1);
@@ -3147,7 +4401,7 @@ export const Container = {
    */
   hydrate(input: Container): Container {
     return {
-      items: Object.fromEntries(Object.entries(input.items).map(([key1, value1]) => [key1, ContainerItemsValue.hydrate(value1)])),
+      items: _vdl.mapRecord(input.items, (value1, key1) => ContainerItemsValue.hydrate(value1)),
     };
   },
 } as const;
@@ -3217,6 +4471,32 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Returns own enumerable entries from a record in insertion order.
+   */
+  recordEntries<TValue>(record: Record<string, TValue>): Array<[string, TValue]> {
+    const entries: Array<[string, TValue]> = [];
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        entries.push([key, record[key]]);
+      }
+    }
+    return entries;
+  },
+
+  /**
+   * Creates a new record by mapping every own enumerable value.
+   */
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+    const output: Record<string, TOutput> = {};
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        output[key] = mapValue(record[key], key);
+      }
+    }
+    return output;
   },
 
   /**
@@ -3348,7 +4628,9 @@ export const OptionalEnvelope = {
       if (!_vdl.isRecord(record0["metadata"])) {
         return \`\${fieldPath0_3}: expected object, got \${_vdl.describeValue(record0["metadata"])}\`;
       }
-      for (const [key1, value1] of Object.entries(record0["metadata"])) {
+      for (const entry1 of _vdl.recordEntries(record0["metadata"])) {
+        const key1 = entry1[0];
+        const value1 = entry1[1];
         const valuePath1 = \`\${fieldPath0_3}[\${JSON.stringify(key1)}]\`;
         if (typeof value1 !== "string") {
           return \`\${valuePath1}: expected string, got \${_vdl.describeValue(value1)}\`;
@@ -3366,7 +4648,7 @@ export const OptionalEnvelope = {
       name: input.name,
       note: input.note === undefined ? undefined : input.note,
       tags: input.tags === undefined ? undefined : input.tags.map((item1) => item1),
-      metadata: input.metadata === undefined ? undefined : Object.fromEntries(Object.entries(input.metadata).map(([key1, value1]) => [key1, value1])),
+      metadata: input.metadata === undefined ? undefined : _vdl.mapRecord(input.metadata, (value1, key1) => value1),
     };
   },
 } as const;
@@ -3385,6 +4667,32 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Returns own enumerable entries from a record in insertion order.
+   */
+  recordEntries<TValue>(record: Record<string, TValue>): Array<[string, TValue]> {
+    const entries: Array<[string, TValue]> = [];
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        entries.push([key, record[key]]);
+      }
+    }
+    return entries;
+  },
+
+  /**
+   * Creates a new record by mapping every own enumerable value.
+   */
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+    const output: Record<string, TOutput> = {};
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        output[key] = mapValue(record[key], key);
+      }
+    }
+    return output;
   },
 
   /**
@@ -3481,7 +4789,7 @@ export const Status = {
    * Performs structural enum validation only (membership in Status); it does not enforce business rules.
    */
   validate(input: unknown, path = "Status"): string | null {
-    if (!Status.values().includes(input as Status)) {
+    if (!_vdl.arrayIncludes(Status.values(), input)) {
       return \`\${path}: invalid value "\${String(input)}" for Status enum\`;
     }
     return null;
@@ -3509,6 +4817,18 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Checks whether an array contains a value using strict equality.
+   */
+  arrayIncludes<TValue>(values: TValue[], value: unknown): value is TValue {
+    for (let index = 0; index < values.length; index += 1) {
+      if (values[index] === value) {
+        return true;
+      }
+    }
+    return false;
   },
 } as const;"
 `;
@@ -3597,6 +4917,32 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Returns own enumerable entries from a record in insertion order.
+   */
+  recordEntries<TValue>(record: Record<string, TValue>): Array<[string, TValue]> {
+    const entries: Array<[string, TValue]> = [];
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        entries.push([key, record[key]]);
+      }
+    }
+    return entries;
+  },
+
+  /**
+   * Creates a new record by mapping every own enumerable value.
+   */
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+    const output: Record<string, TOutput> = {};
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        output[key] = mapValue(record[key], key);
+      }
+    }
+    return output;
   },
 
   /**
@@ -3750,6 +5096,32 @@ const _vdl = {
   },
 
   /**
+   * Returns own enumerable entries from a record in insertion order.
+   */
+  recordEntries<TValue>(record: Record<string, TValue>): Array<[string, TValue]> {
+    const entries: Array<[string, TValue]> = [];
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        entries.push([key, record[key]]);
+      }
+    }
+    return entries;
+  },
+
+  /**
+   * Creates a new record by mapping every own enumerable value.
+   */
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+    const output: Record<string, TOutput> = {};
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        output[key] = mapValue(record[key], key);
+      }
+    }
+    return output;
+  },
+
+  /**
    * Checks whether a value can be validated as a plain object record.
    */
   isRecord(value: unknown): value is Record<string, unknown> {
@@ -3858,6 +5230,18 @@ const _vdl = {
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
   },
+
+  /**
+   * Checks whether an array contains a value using strict equality.
+   */
+  arrayIncludes<TValue>(values: TValue[], value: unknown): value is TValue {
+    for (let index = 0; index < values.length; index += 1) {
+      if (values[index] === value) {
+        return true;
+      }
+    }
+    return false;
+  },
 } as const;"
 `;
 
@@ -3922,6 +5306,32 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Returns own enumerable entries from a record in insertion order.
+   */
+  recordEntries<TValue>(record: Record<string, TValue>): Array<[string, TValue]> {
+    const entries: Array<[string, TValue]> = [];
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        entries.push([key, record[key]]);
+      }
+    }
+    return entries;
+  },
+
+  /**
+   * Creates a new record by mapping every own enumerable value.
+   */
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+    const output: Record<string, TOutput> = {};
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        output[key] = mapValue(record[key], key);
+      }
+    }
+    return output;
   },
 
   /**
@@ -3990,6 +5400,18 @@ const _vdl = {
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
   },
+
+  /**
+   * Checks whether an array contains a value using strict equality.
+   */
+  arrayIncludes<TValue>(values: TValue[], value: unknown): value is TValue {
+    for (let index = 0; index < values.length; index += 1) {
+      if (values[index] === value) {
+        return true;
+      }
+    }
+    return false;
+  },
 } as const;"
 `;
 
@@ -4054,6 +5476,32 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Returns own enumerable entries from a record in insertion order.
+   */
+  recordEntries<TValue>(record: Record<string, TValue>): Array<[string, TValue]> {
+    const entries: Array<[string, TValue]> = [];
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        entries.push([key, record[key]]);
+      }
+    }
+    return entries;
+  },
+
+  /**
+   * Creates a new record by mapping every own enumerable value.
+   */
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+    const output: Record<string, TOutput> = {};
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        output[key] = mapValue(record[key], key);
+      }
+    }
+    return output;
   },
 
   /**
@@ -4241,7 +5689,9 @@ export const Labels = {
     if (!_vdl.isRecord(input)) {
       return \`\${path}: expected object, got \${_vdl.describeValue(input)}\`;
     }
-    for (const [key0, value0] of Object.entries(input)) {
+    for (const entry0 of _vdl.recordEntries(input)) {
+      const key0 = entry0[0];
+      const value0 = entry0[1];
       const valuePath0 = \`\${path}[\${JSON.stringify(key0)}]\`;
       if (typeof value0 !== "string") {
         return \`\${valuePath0}: expected string, got \${_vdl.describeValue(value0)}\`;
@@ -4254,7 +5704,7 @@ export const Labels = {
    * Hydrates a validated Labels value into its runtime representation.
    */
   hydrate(input: Labels): Labels {
-    return Object.fromEntries(Object.entries(input).map(([key0, value0]) => [key0, value0]));
+    return _vdl.mapRecord(input, (value0, key0) => value0);
   },
 } as const;
 
@@ -4359,6 +5809,32 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Returns own enumerable entries from a record in insertion order.
+   */
+  recordEntries<TValue>(record: Record<string, TValue>): Array<[string, TValue]> {
+    const entries: Array<[string, TValue]> = [];
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        entries.push([key, record[key]]);
+      }
+    }
+    return entries;
+  },
+
+  /**
+   * Creates a new record by mapping every own enumerable value.
+   */
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+    const output: Record<string, TOutput> = {};
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        output[key] = mapValue(record[key], key);
+      }
+    }
+    return output;
   },
 
   /**
@@ -4493,7 +5969,9 @@ export const Envelope = {
     if (!_vdl.isRecord(record0["lookup"])) {
       return \`\${fieldPath0_2}: expected object, got \${_vdl.describeValue(record0["lookup"])}\`;
     }
-    for (const [key1, value1] of Object.entries(record0["lookup"])) {
+    for (const entry1 of _vdl.recordEntries(record0["lookup"])) {
+      const key1 = entry1[0];
+      const value1 = entry1[1];
       const valuePath1 = \`\${fieldPath0_2}[\${JSON.stringify(key1)}]\`;
       {
         const error = EnvelopeLookupValue.validate(value1, valuePath1);
@@ -4522,7 +6000,7 @@ export const Envelope = {
     return {
       item: EnvelopeItem.hydrate(input.item),
       items: input.items.map((item1) => EnvelopeItemsItem.hydrate(item1)),
-      lookup: Object.fromEntries(Object.entries(input.lookup).map(([key1, value1]) => [key1, EnvelopeLookupValue.hydrate(value1)])),
+      lookup: _vdl.mapRecord(input.lookup, (value1, key1) => EnvelopeLookupValue.hydrate(value1)),
       nested: EnvelopeNested.hydrate(input.nested),
     };
   },
@@ -4810,6 +6288,32 @@ const _vdl = {
   },
 
   /**
+   * Returns own enumerable entries from a record in insertion order.
+   */
+  recordEntries<TValue>(record: Record<string, TValue>): Array<[string, TValue]> {
+    const entries: Array<[string, TValue]> = [];
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        entries.push([key, record[key]]);
+      }
+    }
+    return entries;
+  },
+
+  /**
+   * Creates a new record by mapping every own enumerable value.
+   */
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+    const output: Record<string, TOutput> = {};
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        output[key] = mapValue(record[key], key);
+      }
+    }
+    return output;
+  },
+
+  /**
    * Checks whether a value can be validated as a plain object record.
    */
   isRecord(value: unknown): value is Record<string, unknown> {
@@ -4969,7 +6473,9 @@ export const ShapeProbe = {
     if (!_vdl.isRecord(record0["labels"])) {
       return \`\${fieldPath0_6}: expected object, got \${_vdl.describeValue(record0["labels"])}\`;
     }
-    for (const [key1, value1] of Object.entries(record0["labels"])) {
+    for (const entry1 of _vdl.recordEntries(record0["labels"])) {
+      const key1 = entry1[0];
+      const value1 = entry1[1];
       const valuePath1 = \`\${fieldPath0_6}[\${JSON.stringify(key1)}]\`;
       if (typeof value1 !== "string") {
         return \`\${valuePath1}: expected string, got \${_vdl.describeValue(value1)}\`;
@@ -4989,7 +6495,7 @@ export const ShapeProbe = {
       title: input.title,
       nested: ShapeProbeNested.hydrate(input.nested),
       values: input.values.map((item1) => item1),
-      labels: Object.fromEntries(Object.entries(input.labels).map(([key1, value1]) => [key1, value1])),
+      labels: _vdl.mapRecord(input.labels, (value1, key1) => value1),
     };
   },
 } as const;
@@ -5059,6 +6565,32 @@ const _vdl = {
       const message = error instanceof Error ? error.message : String(error);
       throw new Error(\`Invalid JSON input: \${message}\`);
     }
+  },
+
+  /**
+   * Returns own enumerable entries from a record in insertion order.
+   */
+  recordEntries<TValue>(record: Record<string, TValue>): Array<[string, TValue]> {
+    const entries: Array<[string, TValue]> = [];
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        entries.push([key, record[key]]);
+      }
+    }
+    return entries;
+  },
+
+  /**
+   * Creates a new record by mapping every own enumerable value.
+   */
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+    const output: Record<string, TOutput> = {};
+    for (const key in record) {
+      if (Object.prototype.hasOwnProperty.call(record, key)) {
+        output[key] = mapValue(record[key], key);
+      }
+    }
+    return output;
   },
 
   /**
