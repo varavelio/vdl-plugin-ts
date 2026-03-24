@@ -1,0 +1,5 @@
+type Schedule {
+  startsAt datetime
+  checkpoints datetime[]
+  byId map[datetime]
+}
