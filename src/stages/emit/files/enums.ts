@@ -105,9 +105,7 @@ function renderEnum(
         `validate(input: unknown, path = ${JSON.stringify(enumDef.name)}): string | null {`,
       );
       g.block(() => {
-        g.line(
-          `if (!${enumDef.name}.values().includes(input as ${enumDef.name})) {`,
-        );
+        g.line(`if (!_vdl.arrayIncludes(${enumDef.name}.values(), input)) {`);
         g.block(() => {
           g.line(
             `return \`\${path}: invalid value "\${String(input)}" for ${enumDef.name} enum\`;`,
@@ -186,6 +184,28 @@ function renderEnumRuntimeHelpers(g: ReturnType<typeof newGenerator>): void {
         g.line(`throw new Error(\`Invalid JSON input: \${message}\`);`);
       });
       g.line("}");
+    });
+    g.line("},");
+    g.break();
+
+    writeDocComment(g, {
+      fallback:
+        "Checks whether an array contains a value using strict equality.",
+    });
+    g.line(
+      "arrayIncludes<TValue>(values: TValue[], value: unknown): value is TValue {",
+    );
+    g.block(() => {
+      g.line("for (let index = 0; index < values.length; index += 1) {");
+      g.block(() => {
+        g.line("if (values[index] === value) {");
+        g.block(() => {
+          g.line("return true;");
+        });
+        g.line("}");
+      });
+      g.line("}");
+      g.line("return false;");
     });
     g.line("},");
   });

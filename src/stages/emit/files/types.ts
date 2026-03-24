@@ -200,9 +200,9 @@ function renderHydrationExpression(
       return `${valueExpression}.map((${itemName}) => ${renderHydrationExpression(getArrayItemType(typeRef), itemName, depth + 1)})`;
     }
     case "map": {
-      const keyName = `key${depth}`;
       const mapValueName = `value${depth}`;
-      return `Object.fromEntries(Object.entries(${valueExpression}).map(([${keyName}, ${mapValueName}]) => [${keyName}, ${renderHydrationExpression(typeRef.mapType as TypeRef, mapValueName, depth + 1)}]))`;
+      const keyName = `key${depth}`;
+      return `_vdl.mapRecord(${valueExpression}, (${mapValueName}, ${keyName}) => ${renderHydrationExpression(typeRef.mapType as TypeRef, mapValueName, depth + 1)})`;
     }
     case "object": {
       if ((typeRef.objectFields ?? []).length === 0) {
@@ -323,6 +323,7 @@ function writeValidationStatements(
       const keyName = `key${options.depth}`;
       const valueName = `value${options.depth}`;
       const valuePathName = `valuePath${options.depth}`;
+      const entryName = `entry${options.depth}`;
 
       g.line(`if (!_vdl.isRecord(${options.valueExpression})) {`);
       g.block(() => {
@@ -332,9 +333,11 @@ function writeValidationStatements(
       });
       g.line("}");
       g.line(
-        `for (const [${keyName}, ${valueName}] of Object.entries(${options.valueExpression})) {`,
+        `for (const ${entryName} of _vdl.recordEntries(${options.valueExpression})) {`,
       );
       g.block(() => {
+        g.line(`const ${keyName} = ${entryName}[0];`);
+        g.line(`const ${valueName} = ${entryName}[1];`);
         g.line(
           `const ${valuePathName} = \`\${${options.pathExpression}}[\${JSON.stringify(${keyName})}]\`;`,
         );
@@ -500,6 +503,51 @@ function renderRuntimeHelpers(
         g.line(`throw new Error(\`Invalid JSON input: \${message}\`);`);
       });
       g.line("}");
+    });
+    g.line("},");
+    g.break();
+
+    writeDocComment(g, {
+      fallback:
+        "Returns own enumerable entries from a record in insertion order.",
+    });
+    g.line(
+      "recordEntries<TValue>(record: Record<string, TValue>): Array<[string, TValue]> {",
+    );
+    g.block(() => {
+      g.line("const entries: Array<[string, TValue]> = [];");
+      g.line("for (const key in record) {");
+      g.block(() => {
+        g.line("if (Object.prototype.hasOwnProperty.call(record, key)) {");
+        g.block(() => {
+          g.line("entries.push([key, record[key]]);");
+        });
+        g.line("}");
+      });
+      g.line("}");
+      g.line("return entries;");
+    });
+    g.line("},");
+    g.break();
+
+    writeDocComment(g, {
+      fallback: "Creates a new record by mapping every own enumerable value.",
+    });
+    g.line(
+      "mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {",
+    );
+    g.block(() => {
+      g.line("const output: Record<string, TOutput> = {};");
+      g.line("for (const key in record) {");
+      g.block(() => {
+        g.line("if (Object.prototype.hasOwnProperty.call(record, key)) {");
+        g.block(() => {
+          g.line("output[key] = mapValue(record[key], key);");
+        });
+        g.line("}");
+      });
+      g.line("}");
+      g.line("return output;");
     });
     g.line("},");
     g.break();

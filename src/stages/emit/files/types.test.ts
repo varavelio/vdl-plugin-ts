@@ -42,7 +42,11 @@ describe("generateTypesFile", () => {
       "Performs structural validation for Payload (required field presence and basic type shape only); it does not enforce business rules.",
     );
     expect(file?.content).toContain("const _vdl = {");
+    expect(file?.content).toContain("recordEntries<TValue>");
+    expect(file?.content).toContain("mapRecord<TInput, TOutput>");
     expect(file?.content).toContain("status: Status.hydrate(input.status),");
+    expect(file?.content).not.toContain("Object.entries(");
+    expect(file?.content).not.toContain("Object.fromEntries(");
     expect(file?.content).not.toContain("export function validatePayload");
   });
 

@@ -41,6 +41,8 @@ describe("generateEnumsFile", () => {
     expect(file?.content).not.toContain("export function validatePriority");
     expect(file?.content).not.toContain("const PriorityValues");
     expect(file?.content).toContain("const _vdl = {");
+    expect(file?.content).toContain("arrayIncludes<TValue>");
+    expect(file?.content).not.toContain(".includes(");
   });
 
   it("omits enum validate helpers when strict mode is disabled", () => {
