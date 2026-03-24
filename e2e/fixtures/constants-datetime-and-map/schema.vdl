@@ -1,0 +1,8 @@
+type DateMap map[datetime]
+
+const launchedAt = "2026-01-03T00:00:00.000Z"
+const checkpoints = ["2026-01-01T00:00:00.000Z" "2026-01-02T00:00:00.000Z"]
+const byId = {
+  one "2026-02-01T00:00:00.000Z"
+  two "2026-02-02T00:00:00.000Z"
+}
