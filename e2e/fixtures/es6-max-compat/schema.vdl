@@ -1,0 +1,51 @@
+enum Role {
+  Viewer = "viewer"
+  Admin = "admin"
+}
+
+enum Priority {
+  Low = 1
+  High = 2
+}
+
+type Session {
+  id string
+  startedAt datetime
+  tags string[]
+}
+
+type Profile {
+  name string
+  active bool
+  age int
+  score float
+  createdAt datetime
+  role Role
+  priority Priority
+  aliases? map[string]
+  history map[datetime[]]
+  sessions Session[]
+  nested {
+    note string
+    flags bool[]
+  }
+}
+
+type ProfileMap map[Profile]
+type ProfileGrid Profile[][]
+
+type Payload {
+  profile Profile
+  byId ProfileMap
+  grid ProfileGrid
+  roleHistory map[Role[]]
+}
+
+const defaultRole = Role.Viewer
+const maxRetries = 3
+const enabled = true
+const labels = {
+  env "ci"
+  region "global"
+}
+const priorities = [Priority.Low Priority.High]
