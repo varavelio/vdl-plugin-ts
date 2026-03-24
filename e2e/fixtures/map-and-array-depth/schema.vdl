@@ -1,0 +1,14 @@
+enum Flag {
+  Off = "off"
+  On = "on"
+}
+
+type Matrix int[][]
+type Bucket map[string[]]
+type Layered map[map[Flag[]]]
+
+type Complex {
+  matrix Matrix
+  bucket Bucket
+  layered Layered
+}
