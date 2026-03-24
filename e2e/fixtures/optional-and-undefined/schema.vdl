@@ -1,0 +1,6 @@
+type OptionalEnvelope {
+  name string
+  note? string
+  tags? string[]
+  metadata? map[string]
+}
