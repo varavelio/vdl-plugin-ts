@@ -1,0 +1,20 @@
+include "./shared.vdl"
+
+enum AllRole {
+  ...StandardRole
+  Admin = "admin"
+}
+
+type User {
+  ...AuditFields
+  id string
+  role AllRole
+}
+
+const mergedInfo = {
+  ...baseInfo
+  source "api"
+  roles ["viewer" "admin"]
+}
+
+const defaultRole = AllRole.Admin

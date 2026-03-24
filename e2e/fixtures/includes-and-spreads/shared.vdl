@@ -1,0 +1,14 @@
+enum StandardRole {
+  Viewer = "viewer"
+  Editor = "editor"
+}
+
+type AuditFields {
+  createdAt datetime
+  updatedAt datetime
+}
+
+const baseInfo = {
+  source "core"
+  attempts [1 2]
+}
