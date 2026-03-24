@@ -1,0 +1,5 @@
+type Container {
+  items map[{
+    nested string
+  }]
+}
