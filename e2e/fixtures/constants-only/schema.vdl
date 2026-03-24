@@ -1,0 +1,2 @@
+const apiVersion = "2.0.0"
+const featureEnabled = false
