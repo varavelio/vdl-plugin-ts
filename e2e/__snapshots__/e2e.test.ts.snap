@@ -84,7 +84,7 @@ export const DateMap = {
    * Hydrates a validated DateMap value into its runtime representation.
    */
   hydrate(input: DateMap): DateMap {
-    return _vdl.mapRecord(input, (value0, key0) => _vdl.hydrateDateInput(value0));
+    return _vdl.mapRecord(input, (value0) => _vdl.hydrateDateInput(value0));
   },
 } as const;
 
@@ -111,7 +111,8 @@ const _vdl = {
     const entries: Array<[string, TValue]> = [];
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        entries.push([key, record[key]]);
+        const value = record[key] as TValue;
+        entries.push([key, value]);
       }
     }
     return entries;
@@ -120,14 +121,26 @@ const _vdl = {
   /**
    * Creates a new record by mapping every own enumerable value.
    */
-  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput) => TOutput): Record<string, TOutput> {
     const output: Record<string, TOutput> = {};
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        output[key] = mapValue(record[key], key);
+        const value = record[key] as TInput;
+        output[key] = mapValue(value);
       }
     }
     return output;
+  },
+
+  /**
+   * Adds an optional property only when the value is defined.
+   */
+  withOptional<TRecord extends object, TKey extends string, TValue>(record: TRecord, key: TKey, value: TValue | undefined): TRecord & Partial<Record<TKey, TValue>> {
+    const mutable = record as Record<string, unknown>;
+    if (value !== undefined) {
+      mutable[key] = value;
+    }
+    return record as TRecord & Partial<Record<TKey, TValue>>;
   },
 
   /**
@@ -478,7 +491,7 @@ export const Schedule = {
     return {
       startsAt: _vdl.hydrateDateInput(input.startsAt),
       checkpoints: input.checkpoints.map((item1) => _vdl.hydrateDateInput(item1)),
-      byId: _vdl.mapRecord(input.byId, (value1, key1) => _vdl.hydrateDateInput(value1)),
+      byId: _vdl.mapRecord(input.byId, (value1) => _vdl.hydrateDateInput(value1)),
     };
   },
 } as const;
@@ -506,7 +519,8 @@ const _vdl = {
     const entries: Array<[string, TValue]> = [];
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        entries.push([key, record[key]]);
+        const value = record[key] as TValue;
+        entries.push([key, value]);
       }
     }
     return entries;
@@ -515,14 +529,26 @@ const _vdl = {
   /**
    * Creates a new record by mapping every own enumerable value.
    */
-  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput) => TOutput): Record<string, TOutput> {
     const output: Record<string, TOutput> = {};
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        output[key] = mapValue(record[key], key);
+        const value = record[key] as TInput;
+        output[key] = mapValue(value);
       }
     }
     return output;
+  },
+
+  /**
+   * Adds an optional property only when the value is defined.
+   */
+  withOptional<TRecord extends object, TKey extends string, TValue>(record: TRecord, key: TKey, value: TValue | undefined): TRecord & Partial<Record<TKey, TValue>> {
+    const mutable = record as Record<string, unknown>;
+    if (value !== undefined) {
+      mutable[key] = value;
+    }
+    return record as TRecord & Partial<Record<TKey, TValue>>;
   },
 
   /**
@@ -795,7 +821,8 @@ const _vdl = {
     const entries: Array<[string, TValue]> = [];
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        entries.push([key, record[key]]);
+        const value = record[key] as TValue;
+        entries.push([key, value]);
       }
     }
     return entries;
@@ -804,14 +831,26 @@ const _vdl = {
   /**
    * Creates a new record by mapping every own enumerable value.
    */
-  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput) => TOutput): Record<string, TOutput> {
     const output: Record<string, TOutput> = {};
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        output[key] = mapValue(record[key], key);
+        const value = record[key] as TInput;
+        output[key] = mapValue(value);
       }
     }
     return output;
+  },
+
+  /**
+   * Adds an optional property only when the value is defined.
+   */
+  withOptional<TRecord extends object, TKey extends string, TValue>(record: TRecord, key: TKey, value: TValue | undefined): TRecord & Partial<Record<TKey, TValue>> {
+    const mutable = record as Record<string, unknown>;
+    if (value !== undefined) {
+      mutable[key] = value;
+    }
+    return record as TRecord & Partial<Record<TKey, TValue>>;
   },
 
   /**
@@ -1011,9 +1050,8 @@ export const Wrapper = {
    * Hydrates a validated Wrapper value into its runtime representation.
    */
   hydrate(input: Wrapper): Wrapper {
-    return {
-      value: input.value === undefined ? undefined : Nothing.hydrate(input.value),
-    };
+    return _vdl.withOptional({
+    }, "value", input.value === undefined ? undefined : Nothing.hydrate(input.value));
   },
 } as const;
 
@@ -1040,7 +1078,8 @@ const _vdl = {
     const entries: Array<[string, TValue]> = [];
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        entries.push([key, record[key]]);
+        const value = record[key] as TValue;
+        entries.push([key, value]);
       }
     }
     return entries;
@@ -1049,14 +1088,26 @@ const _vdl = {
   /**
    * Creates a new record by mapping every own enumerable value.
    */
-  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput) => TOutput): Record<string, TOutput> {
     const output: Record<string, TOutput> = {};
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        output[key] = mapValue(record[key], key);
+        const value = record[key] as TInput;
+        output[key] = mapValue(value);
       }
     }
     return output;
+  },
+
+  /**
+   * Adds an optional property only when the value is defined.
+   */
+  withOptional<TRecord extends object, TKey extends string, TValue>(record: TRecord, key: TKey, value: TValue | undefined): TRecord & Partial<Record<TKey, TValue>> {
+    const mutable = record as Record<string, unknown>;
+    if (value !== undefined) {
+      mutable[key] = value;
+    }
+    return record as TRecord & Partial<Record<TKey, TValue>>;
   },
 
   /**
@@ -1571,7 +1622,7 @@ export const Payload = {
       profile: Profile.hydrate(input.profile),
       byId: ProfileMap.hydrate(input.byId),
       grid: ProfileGrid.hydrate(input.grid),
-      roleHistory: _vdl.mapRecord(input.roleHistory, (value1, key1) => value1.map((item2) => Role.hydrate(item2))),
+      roleHistory: _vdl.mapRecord(input.roleHistory, (value1) => value1.map((item2) => Role.hydrate(item2))),
     };
   },
 } as const;
@@ -1740,7 +1791,7 @@ export const Profile = {
    * Hydrates a validated Profile value into its runtime representation.
    */
   hydrate(input: Profile): Profile {
-    return {
+    return _vdl.withOptional({
       name: input.name,
       active: input.active,
       age: input.age,
@@ -1748,11 +1799,10 @@ export const Profile = {
       createdAt: _vdl.hydrateDateInput(input.createdAt),
       role: Role.hydrate(input.role),
       priority: Priority.hydrate(input.priority),
-      aliases: input.aliases === undefined ? undefined : _vdl.mapRecord(input.aliases, (value1, key1) => value1),
-      history: _vdl.mapRecord(input.history, (value1, key1) => value1.map((item2) => _vdl.hydrateDateInput(item2))),
+      history: _vdl.mapRecord(input.history, (value1) => value1.map((item2) => _vdl.hydrateDateInput(item2))),
       sessions: input.sessions.map((item1) => Session.hydrate(item1)),
       nested: ProfileNested.hydrate(input.nested),
-    };
+    }, "aliases", input.aliases === undefined ? undefined : _vdl.mapRecord(input.aliases, (value1) => value1));
   },
 } as const;
 
@@ -1922,7 +1972,7 @@ export const ProfileMap = {
    * Hydrates a validated ProfileMap value into its runtime representation.
    */
   hydrate(input: ProfileMap): ProfileMap {
-    return _vdl.mapRecord(input, (value0, key0) => Profile.hydrate(value0));
+    return _vdl.mapRecord(input, (value0) => Profile.hydrate(value0));
   },
 } as const;
 
@@ -2024,7 +2074,8 @@ const _vdl = {
     const entries: Array<[string, TValue]> = [];
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        entries.push([key, record[key]]);
+        const value = record[key] as TValue;
+        entries.push([key, value]);
       }
     }
     return entries;
@@ -2033,14 +2084,26 @@ const _vdl = {
   /**
    * Creates a new record by mapping every own enumerable value.
    */
-  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput) => TOutput): Record<string, TOutput> {
     const output: Record<string, TOutput> = {};
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        output[key] = mapValue(record[key], key);
+        const value = record[key] as TInput;
+        output[key] = mapValue(value);
       }
     }
     return output;
+  },
+
+  /**
+   * Adds an optional property only when the value is defined.
+   */
+  withOptional<TRecord extends object, TKey extends string, TValue>(record: TRecord, key: TKey, value: TValue | undefined): TRecord & Partial<Record<TKey, TValue>> {
+    const mutable = record as Record<string, unknown>;
+    if (value !== undefined) {
+      mutable[key] = value;
+    }
+    return record as TRecord & Partial<Record<TKey, TValue>>;
   },
 
   /**
@@ -2294,7 +2357,8 @@ const _vdl = {
     const entries: Array<[string, TValue]> = [];
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        entries.push([key, record[key]]);
+        const value = record[key] as TValue;
+        entries.push([key, value]);
       }
     }
     return entries;
@@ -2303,14 +2367,26 @@ const _vdl = {
   /**
    * Creates a new record by mapping every own enumerable value.
    */
-  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput) => TOutput): Record<string, TOutput> {
     const output: Record<string, TOutput> = {};
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        output[key] = mapValue(record[key], key);
+        const value = record[key] as TInput;
+        output[key] = mapValue(value);
       }
     }
     return output;
+  },
+
+  /**
+   * Adds an optional property only when the value is defined.
+   */
+  withOptional<TRecord extends object, TKey extends string, TValue>(record: TRecord, key: TKey, value: TValue | undefined): TRecord & Partial<Record<TKey, TValue>> {
+    const mutable = record as Record<string, unknown>;
+    if (value !== undefined) {
+      mutable[key] = value;
+    }
+    return record as TRecord & Partial<Record<TKey, TValue>>;
   },
 
   /**
@@ -2565,7 +2641,8 @@ const _vdl = {
     const entries: Array<[string, TValue]> = [];
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        entries.push([key, record[key]]);
+        const value = record[key] as TValue;
+        entries.push([key, value]);
       }
     }
     return entries;
@@ -2574,14 +2651,26 @@ const _vdl = {
   /**
    * Creates a new record by mapping every own enumerable value.
    */
-  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput) => TOutput): Record<string, TOutput> {
     const output: Record<string, TOutput> = {};
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        output[key] = mapValue(record[key], key);
+        const value = record[key] as TInput;
+        output[key] = mapValue(value);
       }
     }
     return output;
+  },
+
+  /**
+   * Adds an optional property only when the value is defined.
+   */
+  withOptional<TRecord extends object, TKey extends string, TValue>(record: TRecord, key: TKey, value: TValue | undefined): TRecord & Partial<Record<TKey, TValue>> {
+    const mutable = record as Record<string, unknown>;
+    if (value !== undefined) {
+      mutable[key] = value;
+    }
+    return record as TRecord & Partial<Record<TKey, TValue>>;
   },
 
   /**
@@ -2836,7 +2925,8 @@ const _vdl = {
     const entries: Array<[string, TValue]> = [];
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        entries.push([key, record[key]]);
+        const value = record[key] as TValue;
+        entries.push([key, value]);
       }
     }
     return entries;
@@ -2845,14 +2935,26 @@ const _vdl = {
   /**
    * Creates a new record by mapping every own enumerable value.
    */
-  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput) => TOutput): Record<string, TOutput> {
     const output: Record<string, TOutput> = {};
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        output[key] = mapValue(record[key], key);
+        const value = record[key] as TInput;
+        output[key] = mapValue(value);
       }
     }
     return output;
+  },
+
+  /**
+   * Adds an optional property only when the value is defined.
+   */
+  withOptional<TRecord extends object, TKey extends string, TValue>(record: TRecord, key: TKey, value: TValue | undefined): TRecord & Partial<Record<TKey, TValue>> {
+    const mutable = record as Record<string, unknown>;
+    if (value !== undefined) {
+      mutable[key] = value;
+    }
+    return record as TRecord & Partial<Record<TKey, TValue>>;
   },
 
   /**
@@ -3107,7 +3209,8 @@ const _vdl = {
     const entries: Array<[string, TValue]> = [];
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        entries.push([key, record[key]]);
+        const value = record[key] as TValue;
+        entries.push([key, value]);
       }
     }
     return entries;
@@ -3116,14 +3219,26 @@ const _vdl = {
   /**
    * Creates a new record by mapping every own enumerable value.
    */
-  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput) => TOutput): Record<string, TOutput> {
     const output: Record<string, TOutput> = {};
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        output[key] = mapValue(record[key], key);
+        const value = record[key] as TInput;
+        output[key] = mapValue(value);
       }
     }
     return output;
+  },
+
+  /**
+   * Adds an optional property only when the value is defined.
+   */
+  withOptional<TRecord extends object, TKey extends string, TValue>(record: TRecord, key: TKey, value: TValue | undefined): TRecord & Partial<Record<TKey, TValue>> {
+    const mutable = record as Record<string, unknown>;
+    if (value !== undefined) {
+      mutable[key] = value;
+    }
+    return record as TRecord & Partial<Record<TKey, TValue>>;
   },
 
   /**
@@ -3549,7 +3664,8 @@ const _vdl = {
     const entries: Array<[string, TValue]> = [];
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        entries.push([key, record[key]]);
+        const value = record[key] as TValue;
+        entries.push([key, value]);
       }
     }
     return entries;
@@ -3558,14 +3674,26 @@ const _vdl = {
   /**
    * Creates a new record by mapping every own enumerable value.
    */
-  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput) => TOutput): Record<string, TOutput> {
     const output: Record<string, TOutput> = {};
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        output[key] = mapValue(record[key], key);
+        const value = record[key] as TInput;
+        output[key] = mapValue(value);
       }
     }
     return output;
+  },
+
+  /**
+   * Adds an optional property only when the value is defined.
+   */
+  withOptional<TRecord extends object, TKey extends string, TValue>(record: TRecord, key: TKey, value: TValue | undefined): TRecord & Partial<Record<TKey, TValue>> {
+    const mutable = record as Record<string, unknown>;
+    if (value !== undefined) {
+      mutable[key] = value;
+    }
+    return record as TRecord & Partial<Record<TKey, TValue>>;
   },
 
   /**
@@ -3813,7 +3941,8 @@ const _vdl = {
     const entries: Array<[string, TValue]> = [];
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        entries.push([key, record[key]]);
+        const value = record[key] as TValue;
+        entries.push([key, value]);
       }
     }
     return entries;
@@ -3822,14 +3951,26 @@ const _vdl = {
   /**
    * Creates a new record by mapping every own enumerable value.
    */
-  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput) => TOutput): Record<string, TOutput> {
     const output: Record<string, TOutput> = {};
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        output[key] = mapValue(record[key], key);
+        const value = record[key] as TInput;
+        output[key] = mapValue(value);
       }
     }
     return output;
+  },
+
+  /**
+   * Adds an optional property only when the value is defined.
+   */
+  withOptional<TRecord extends object, TKey extends string, TValue>(record: TRecord, key: TKey, value: TValue | undefined): TRecord & Partial<Record<TKey, TValue>> {
+    const mutable = record as Record<string, unknown>;
+    if (value !== undefined) {
+      mutable[key] = value;
+    }
+    return record as TRecord & Partial<Record<TKey, TValue>>;
   },
 
   /**
@@ -4040,7 +4181,7 @@ export const Bucket = {
    * Hydrates a validated Bucket value into its runtime representation.
    */
   hydrate(input: Bucket): Bucket {
-    return _vdl.mapRecord(input, (value0, key0) => value0.map((item1) => item1));
+    return _vdl.mapRecord(input, (value0) => value0.map((item1) => item1));
   },
 } as const;
 
@@ -4182,7 +4323,7 @@ export const Layered = {
    * Hydrates a validated Layered value into its runtime representation.
    */
   hydrate(input: Layered): Layered {
-    return _vdl.mapRecord(input, (value0, key0) => _vdl.mapRecord(value0, (value1, key1) => value1.map((item2) => Flag.hydrate(item2))));
+    return _vdl.mapRecord(input, (value0) => _vdl.mapRecord(value0, (value1) => value1.map((item2) => Flag.hydrate(item2))));
   },
 } as const;
 
@@ -4260,7 +4401,8 @@ const _vdl = {
     const entries: Array<[string, TValue]> = [];
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        entries.push([key, record[key]]);
+        const value = record[key] as TValue;
+        entries.push([key, value]);
       }
     }
     return entries;
@@ -4269,14 +4411,26 @@ const _vdl = {
   /**
    * Creates a new record by mapping every own enumerable value.
    */
-  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput) => TOutput): Record<string, TOutput> {
     const output: Record<string, TOutput> = {};
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        output[key] = mapValue(record[key], key);
+        const value = record[key] as TInput;
+        output[key] = mapValue(value);
       }
     }
     return output;
+  },
+
+  /**
+   * Adds an optional property only when the value is defined.
+   */
+  withOptional<TRecord extends object, TKey extends string, TValue>(record: TRecord, key: TKey, value: TValue | undefined): TRecord & Partial<Record<TKey, TValue>> {
+    const mutable = record as Record<string, unknown>;
+    if (value !== undefined) {
+      mutable[key] = value;
+    }
+    return record as TRecord & Partial<Record<TKey, TValue>>;
   },
 
   /**
@@ -4401,7 +4555,7 @@ export const Container = {
    */
   hydrate(input: Container): Container {
     return {
-      items: _vdl.mapRecord(input.items, (value1, key1) => ContainerItemsValue.hydrate(value1)),
+      items: _vdl.mapRecord(input.items, (value1) => ContainerItemsValue.hydrate(value1)),
     };
   },
 } as const;
@@ -4480,7 +4634,8 @@ const _vdl = {
     const entries: Array<[string, TValue]> = [];
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        entries.push([key, record[key]]);
+        const value = record[key] as TValue;
+        entries.push([key, value]);
       }
     }
     return entries;
@@ -4489,14 +4644,26 @@ const _vdl = {
   /**
    * Creates a new record by mapping every own enumerable value.
    */
-  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput) => TOutput): Record<string, TOutput> {
     const output: Record<string, TOutput> = {};
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        output[key] = mapValue(record[key], key);
+        const value = record[key] as TInput;
+        output[key] = mapValue(value);
       }
     }
     return output;
+  },
+
+  /**
+   * Adds an optional property only when the value is defined.
+   */
+  withOptional<TRecord extends object, TKey extends string, TValue>(record: TRecord, key: TKey, value: TValue | undefined): TRecord & Partial<Record<TKey, TValue>> {
+    const mutable = record as Record<string, unknown>;
+    if (value !== undefined) {
+      mutable[key] = value;
+    }
+    return record as TRecord & Partial<Record<TKey, TValue>>;
   },
 
   /**
@@ -4644,12 +4811,9 @@ export const OptionalEnvelope = {
    * Hydrates a validated OptionalEnvelope value into its runtime representation.
    */
   hydrate(input: OptionalEnvelope): OptionalEnvelope {
-    return {
+    return _vdl.withOptional(_vdl.withOptional(_vdl.withOptional({
       name: input.name,
-      note: input.note === undefined ? undefined : input.note,
-      tags: input.tags === undefined ? undefined : input.tags.map((item1) => item1),
-      metadata: input.metadata === undefined ? undefined : _vdl.mapRecord(input.metadata, (value1, key1) => value1),
-    };
+    }, "note", input.note === undefined ? undefined : input.note), "tags", input.tags === undefined ? undefined : input.tags.map((item1) => item1)), "metadata", input.metadata === undefined ? undefined : _vdl.mapRecord(input.metadata, (value1) => value1));
   },
 } as const;
 
@@ -4676,7 +4840,8 @@ const _vdl = {
     const entries: Array<[string, TValue]> = [];
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        entries.push([key, record[key]]);
+        const value = record[key] as TValue;
+        entries.push([key, value]);
       }
     }
     return entries;
@@ -4685,14 +4850,26 @@ const _vdl = {
   /**
    * Creates a new record by mapping every own enumerable value.
    */
-  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput) => TOutput): Record<string, TOutput> {
     const output: Record<string, TOutput> = {};
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        output[key] = mapValue(record[key], key);
+        const value = record[key] as TInput;
+        output[key] = mapValue(value);
       }
     }
     return output;
+  },
+
+  /**
+   * Adds an optional property only when the value is defined.
+   */
+  withOptional<TRecord extends object, TKey extends string, TValue>(record: TRecord, key: TKey, value: TValue | undefined): TRecord & Partial<Record<TKey, TValue>> {
+    const mutable = record as Record<string, unknown>;
+    if (value !== undefined) {
+      mutable[key] = value;
+    }
+    return record as TRecord & Partial<Record<TKey, TValue>>;
   },
 
   /**
@@ -4926,7 +5103,8 @@ const _vdl = {
     const entries: Array<[string, TValue]> = [];
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        entries.push([key, record[key]]);
+        const value = record[key] as TValue;
+        entries.push([key, value]);
       }
     }
     return entries;
@@ -4935,14 +5113,26 @@ const _vdl = {
   /**
    * Creates a new record by mapping every own enumerable value.
    */
-  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput) => TOutput): Record<string, TOutput> {
     const output: Record<string, TOutput> = {};
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        output[key] = mapValue(record[key], key);
+        const value = record[key] as TInput;
+        output[key] = mapValue(value);
       }
     }
     return output;
+  },
+
+  /**
+   * Adds an optional property only when the value is defined.
+   */
+  withOptional<TRecord extends object, TKey extends string, TValue>(record: TRecord, key: TKey, value: TValue | undefined): TRecord & Partial<Record<TKey, TValue>> {
+    const mutable = record as Record<string, unknown>;
+    if (value !== undefined) {
+      mutable[key] = value;
+    }
+    return record as TRecord & Partial<Record<TKey, TValue>>;
   },
 
   /**
@@ -5102,7 +5292,8 @@ const _vdl = {
     const entries: Array<[string, TValue]> = [];
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        entries.push([key, record[key]]);
+        const value = record[key] as TValue;
+        entries.push([key, value]);
       }
     }
     return entries;
@@ -5111,14 +5302,26 @@ const _vdl = {
   /**
    * Creates a new record by mapping every own enumerable value.
    */
-  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput) => TOutput): Record<string, TOutput> {
     const output: Record<string, TOutput> = {};
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        output[key] = mapValue(record[key], key);
+        const value = record[key] as TInput;
+        output[key] = mapValue(value);
       }
     }
     return output;
+  },
+
+  /**
+   * Adds an optional property only when the value is defined.
+   */
+  withOptional<TRecord extends object, TKey extends string, TValue>(record: TRecord, key: TKey, value: TValue | undefined): TRecord & Partial<Record<TKey, TValue>> {
+    const mutable = record as Record<string, unknown>;
+    if (value !== undefined) {
+      mutable[key] = value;
+    }
+    return record as TRecord & Partial<Record<TKey, TValue>>;
   },
 
   /**
@@ -5315,7 +5518,8 @@ const _vdl = {
     const entries: Array<[string, TValue]> = [];
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        entries.push([key, record[key]]);
+        const value = record[key] as TValue;
+        entries.push([key, value]);
       }
     }
     return entries;
@@ -5324,14 +5528,26 @@ const _vdl = {
   /**
    * Creates a new record by mapping every own enumerable value.
    */
-  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput) => TOutput): Record<string, TOutput> {
     const output: Record<string, TOutput> = {};
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        output[key] = mapValue(record[key], key);
+        const value = record[key] as TInput;
+        output[key] = mapValue(value);
       }
     }
     return output;
+  },
+
+  /**
+   * Adds an optional property only when the value is defined.
+   */
+  withOptional<TRecord extends object, TKey extends string, TValue>(record: TRecord, key: TKey, value: TValue | undefined): TRecord & Partial<Record<TKey, TValue>> {
+    const mutable = record as Record<string, unknown>;
+    if (value !== undefined) {
+      mutable[key] = value;
+    }
+    return record as TRecord & Partial<Record<TKey, TValue>>;
   },
 
   /**
@@ -5485,7 +5701,8 @@ const _vdl = {
     const entries: Array<[string, TValue]> = [];
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        entries.push([key, record[key]]);
+        const value = record[key] as TValue;
+        entries.push([key, value]);
       }
     }
     return entries;
@@ -5494,14 +5711,26 @@ const _vdl = {
   /**
    * Creates a new record by mapping every own enumerable value.
    */
-  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput) => TOutput): Record<string, TOutput> {
     const output: Record<string, TOutput> = {};
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        output[key] = mapValue(record[key], key);
+        const value = record[key] as TInput;
+        output[key] = mapValue(value);
       }
     }
     return output;
+  },
+
+  /**
+   * Adds an optional property only when the value is defined.
+   */
+  withOptional<TRecord extends object, TKey extends string, TValue>(record: TRecord, key: TKey, value: TValue | undefined): TRecord & Partial<Record<TKey, TValue>> {
+    const mutable = record as Record<string, unknown>;
+    if (value !== undefined) {
+      mutable[key] = value;
+    }
+    return record as TRecord & Partial<Record<TKey, TValue>>;
   },
 
   /**
@@ -5704,7 +5933,7 @@ export const Labels = {
    * Hydrates a validated Labels value into its runtime representation.
    */
   hydrate(input: Labels): Labels {
-    return _vdl.mapRecord(input, (value0, key0) => value0);
+    return _vdl.mapRecord(input, (value0) => value0);
   },
 } as const;
 
@@ -5818,7 +6047,8 @@ const _vdl = {
     const entries: Array<[string, TValue]> = [];
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        entries.push([key, record[key]]);
+        const value = record[key] as TValue;
+        entries.push([key, value]);
       }
     }
     return entries;
@@ -5827,14 +6057,26 @@ const _vdl = {
   /**
    * Creates a new record by mapping every own enumerable value.
    */
-  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput) => TOutput): Record<string, TOutput> {
     const output: Record<string, TOutput> = {};
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        output[key] = mapValue(record[key], key);
+        const value = record[key] as TInput;
+        output[key] = mapValue(value);
       }
     }
     return output;
+  },
+
+  /**
+   * Adds an optional property only when the value is defined.
+   */
+  withOptional<TRecord extends object, TKey extends string, TValue>(record: TRecord, key: TKey, value: TValue | undefined): TRecord & Partial<Record<TKey, TValue>> {
+    const mutable = record as Record<string, unknown>;
+    if (value !== undefined) {
+      mutable[key] = value;
+    }
+    return record as TRecord & Partial<Record<TKey, TValue>>;
   },
 
   /**
@@ -6000,7 +6242,7 @@ export const Envelope = {
     return {
       item: EnvelopeItem.hydrate(input.item),
       items: input.items.map((item1) => EnvelopeItemsItem.hydrate(item1)),
-      lookup: _vdl.mapRecord(input.lookup, (value1, key1) => EnvelopeLookupValue.hydrate(value1)),
+      lookup: _vdl.mapRecord(input.lookup, (value1) => EnvelopeLookupValue.hydrate(value1)),
       nested: EnvelopeNested.hydrate(input.nested),
     };
   },
@@ -6058,10 +6300,9 @@ export const EnvelopeItem = {
    * Hydrates a validated EnvelopeItem value into its runtime representation.
    */
   hydrate(input: EnvelopeItem): EnvelopeItem {
-    return {
+    return _vdl.withOptional({
       label: input.label,
-      enabled: input.enabled === undefined ? undefined : input.enabled,
-    };
+    }, "enabled", input.enabled === undefined ? undefined : input.enabled);
   },
 } as const;
 
@@ -6265,9 +6506,8 @@ export const EnvelopeNestedChild = {
    * Hydrates a validated EnvelopeNestedChild value into its runtime representation.
    */
   hydrate(input: EnvelopeNestedChild): EnvelopeNestedChild {
-    return {
-      note: input.note === undefined ? undefined : input.note,
-    };
+    return _vdl.withOptional({
+    }, "note", input.note === undefined ? undefined : input.note);
   },
 } as const;
 
@@ -6294,7 +6534,8 @@ const _vdl = {
     const entries: Array<[string, TValue]> = [];
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        entries.push([key, record[key]]);
+        const value = record[key] as TValue;
+        entries.push([key, value]);
       }
     }
     return entries;
@@ -6303,14 +6544,26 @@ const _vdl = {
   /**
    * Creates a new record by mapping every own enumerable value.
    */
-  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput) => TOutput): Record<string, TOutput> {
     const output: Record<string, TOutput> = {};
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        output[key] = mapValue(record[key], key);
+        const value = record[key] as TInput;
+        output[key] = mapValue(value);
       }
     }
     return output;
+  },
+
+  /**
+   * Adds an optional property only when the value is defined.
+   */
+  withOptional<TRecord extends object, TKey extends string, TValue>(record: TRecord, key: TKey, value: TValue | undefined): TRecord & Partial<Record<TKey, TValue>> {
+    const mutable = record as Record<string, unknown>;
+    if (value !== undefined) {
+      mutable[key] = value;
+    }
+    return record as TRecord & Partial<Record<TKey, TValue>>;
   },
 
   /**
@@ -6495,7 +6748,7 @@ export const ShapeProbe = {
       title: input.title,
       nested: ShapeProbeNested.hydrate(input.nested),
       values: input.values.map((item1) => item1),
-      labels: _vdl.mapRecord(input.labels, (value1, key1) => value1),
+      labels: _vdl.mapRecord(input.labels, (value1) => value1),
     };
   },
 } as const;
@@ -6574,7 +6827,8 @@ const _vdl = {
     const entries: Array<[string, TValue]> = [];
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        entries.push([key, record[key]]);
+        const value = record[key] as TValue;
+        entries.push([key, value]);
       }
     }
     return entries;
@@ -6583,14 +6837,26 @@ const _vdl = {
   /**
    * Creates a new record by mapping every own enumerable value.
    */
-  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {
+  mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput) => TOutput): Record<string, TOutput> {
     const output: Record<string, TOutput> = {};
     for (const key in record) {
       if (Object.prototype.hasOwnProperty.call(record, key)) {
-        output[key] = mapValue(record[key], key);
+        const value = record[key] as TInput;
+        output[key] = mapValue(value);
       }
     }
     return output;
+  },
+
+  /**
+   * Adds an optional property only when the value is defined.
+   */
+  withOptional<TRecord extends object, TKey extends string, TValue>(record: TRecord, key: TKey, value: TValue | undefined): TRecord & Partial<Record<TKey, TValue>> {
+    const mutable = record as Record<string, unknown>;
+    if (value !== undefined) {
+      mutable[key] = value;
+    }
+    return record as TRecord & Partial<Record<TKey, TValue>>;
   },
 
   /**
