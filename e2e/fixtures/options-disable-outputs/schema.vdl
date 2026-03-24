@@ -1,0 +1,9 @@
+enum Status {
+  Ready = "ready"
+}
+
+const apiVersion = "1.0.0"
+
+type Payload {
+  status Status
+}
