@@ -2447,18 +2447,19 @@ function renderHydrationExpression(typeRef, valueExpression, depth) {
     }
     case "map": {
       const mapValueName = `value${depth}`;
-      const keyName = `key${depth}`;
-      return `_vdl.mapRecord(${valueExpression}, (${mapValueName}, ${keyName}) => ${renderHydrationExpression(typeRef.mapType, mapValueName, depth + 1)})`;
+      return `_vdl.mapRecord(${valueExpression}, (${mapValueName}) => ${renderHydrationExpression(typeRef.mapType, mapValueName, depth + 1)})`;
     }
     case "object": {
-      if (((_a2 = typeRef.objectFields) != null ? _a2 : []).length === 0) {
+      const fields = (_a2 = typeRef.objectFields) != null ? _a2 : [];
+      if (fields.length === 0) {
         return "{}";
       }
-      const objectGenerator = newGenerator().withSpaces(2);
-      objectGenerator.line("{");
-      objectGenerator.block(() => {
-        var _a3;
-        for (const field of (_a3 = typeRef.objectFields) != null ? _a3 : []) {
+      const requiredFields = fields.filter((field) => !field.optional);
+      const optionalFields = fields.filter((field) => field.optional);
+      const baseObjectGenerator = newGenerator().withSpaces(2);
+      baseObjectGenerator.line("{");
+      baseObjectGenerator.block(() => {
+        for (const field of requiredFields) {
           const accessExpression = renderValueAccess(
             valueExpression,
             field.name
@@ -2468,14 +2469,24 @@ function renderHydrationExpression(typeRef, valueExpression, depth) {
             accessExpression,
             depth + 1
           );
-          const finalValue = field.optional ? `${accessExpression} === undefined ? undefined : ${hydratedValue}` : hydratedValue;
-          objectGenerator.line(
-            `${renderPropertyName(field.name)}: ${finalValue},`
+          baseObjectGenerator.line(
+            `${renderPropertyName(field.name)}: ${hydratedValue},`
           );
         }
       });
-      objectGenerator.line("}");
-      return objectGenerator.toString().trim();
+      baseObjectGenerator.line("}");
+      let expression = baseObjectGenerator.toString().trim();
+      for (const field of optionalFields) {
+        const accessExpression = renderValueAccess(valueExpression, field.name);
+        const hydratedValue = renderHydrationExpression(
+          field.typeRef,
+          accessExpression,
+          depth + 1
+        );
+        const optionalValue = `${accessExpression} === undefined ? undefined : ${hydratedValue}`;
+        expression = `_vdl.withOptional(${expression}, ${JSON.stringify(field.name)}, ${optionalValue})`;
+      }
+      return expression;
     }
     default:
       return valueExpression;
@@ -2721,7 +2732,8 @@ function renderRuntimeHelpers(g, strict) {
       g.block(() => {
         g.line("if (Object.prototype.hasOwnProperty.call(record, key)) {");
         g.block(() => {
-          g.line("entries.push([key, record[key]]);");
+          g.line("const value = record[key] as TValue;");
+          g.line("entries.push([key, value]);");
         });
         g.line("}");
       });
@@ -2734,7 +2746,7 @@ function renderRuntimeHelpers(g, strict) {
       fallback: "Creates a new record by mapping every own enumerable value."
     });
     g.line(
-      "mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput, key: string) => TOutput): Record<string, TOutput> {"
+      "mapRecord<TInput, TOutput>(record: Record<string, TInput>, mapValue: (value: TInput) => TOutput): Record<string, TOutput> {"
     );
     g.block(() => {
       g.line("const output: Record<string, TOutput> = {};");
@@ -2742,12 +2754,30 @@ function renderRuntimeHelpers(g, strict) {
       g.block(() => {
         g.line("if (Object.prototype.hasOwnProperty.call(record, key)) {");
         g.block(() => {
-          g.line("output[key] = mapValue(record[key], key);");
+          g.line("const value = record[key] as TInput;");
+          g.line("output[key] = mapValue(value);");
         });
         g.line("}");
       });
       g.line("}");
       g.line("return output;");
+    });
+    g.line("},");
+    g.break();
+    writeDocComment(g, {
+      fallback: "Adds an optional property only when the value is defined."
+    });
+    g.line(
+      "withOptional<TRecord extends object, TKey extends string, TValue>(record: TRecord, key: TKey, value: TValue | undefined): TRecord & Partial<Record<TKey, TValue>> {"
+    );
+    g.block(() => {
+      g.line("const mutable = record as Record<string, unknown>;");
+      g.line("if (value !== undefined) {");
+      g.block(() => {
+        g.line("mutable[key] = value;");
+      });
+      g.line("}");
+      g.line("return record as TRecord & Partial<Record<TKey, TValue>>;");
     });
     g.line("},");
     g.break();
