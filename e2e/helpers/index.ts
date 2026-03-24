@@ -67,3 +67,15 @@ export function assertFileContains(path: string, value: string): void {
     `Expected file ${path} to contain ${JSON.stringify(value)}`,
   );
 }
+
+/**
+ * Asserts that a file does not contain the given string.
+ */
+export function assertFileNotContains(path: string, value: string): void {
+  assertFileExists(path);
+  const content = readFileSync(resolve(process.cwd(), path), "utf-8");
+  assert(
+    !content.includes(value),
+    `Expected file ${path} not to contain ${JSON.stringify(value)}`,
+  );
+}
