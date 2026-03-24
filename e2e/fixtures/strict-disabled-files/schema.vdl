@@ -1,0 +1,8 @@
+enum Status {
+  Ready = "ready"
+}
+
+type Payload {
+  status Status
+  createdAt datetime
+}
