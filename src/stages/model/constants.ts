@@ -7,7 +7,7 @@ import type {
   TypeDef,
   TypeRef,
 } from "@varavel/vdl-plugin-sdk";
-import { strings } from "@varavel/vdl-plugin-sdk/utils";
+import * as strings from "@varavel/vdl-plugin-sdk/utils/strings";
 import type { ConstantDescriptor } from "./types";
 
 /**

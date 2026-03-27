@@ -1,5 +1,5 @@
 import { newGenerator } from "@varavel/gen";
-import { strings } from "@varavel/vdl-plugin-sdk/utils";
+import * as strings from "@varavel/vdl-plugin-sdk/utils/strings";
 
 /**
  * Wraps a generated TypeScript module body with stable whitespace handling.

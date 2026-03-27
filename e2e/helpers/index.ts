@@ -1,6 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { misc } from "@varavel/vdl-plugin-sdk/utils";
+import * as misc from "@varavel/vdl-plugin-sdk/utils/misc";
 
 /**
  * Asserts that a condition is truthy.

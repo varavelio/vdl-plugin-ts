@@ -1,5 +1,5 @@
 import type { PluginOutputError, Position } from "@varavel/vdl-plugin-sdk";
-import { misc } from "@varavel/vdl-plugin-sdk/utils";
+import * as misc from "@varavel/vdl-plugin-sdk/utils/misc";
 
 /**
  * Error used for generator failures that should surface as structured plugin

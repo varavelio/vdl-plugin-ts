@@ -1,4 +1,4 @@
-import { strings } from "@varavel/vdl-plugin-sdk/utils";
+import * as strings from "@varavel/vdl-plugin-sdk/utils/strings";
 
 /**
  * Derives the generated type name for an inline object nested under a parent

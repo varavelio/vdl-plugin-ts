@@ -1,5 +1,5 @@
 import type { PluginInput, PluginOutputError } from "@varavel/vdl-plugin-sdk";
-import { ir } from "@varavel/vdl-plugin-sdk/utils";
+import * as ir from "@varavel/vdl-plugin-sdk/utils/ir";
 import { buildConstantDescriptors } from "./constants";
 import type { GeneratorContext, GeneratorOptions } from "./types";
 
