@@ -5,7 +5,7 @@ import { generateEnumsFile } from "./enums";
 
 describe("generateEnumsFile", () => {
   it("renders merged enum namespaces with values and helpers", () => {
-    const result = createGeneratorContext({
+    const context = createGeneratorContext({
       input: irb.pluginInput({
         ir: irb.schema({
           enums: [
@@ -23,7 +23,7 @@ describe("generateEnumsFile", () => {
       },
     });
 
-    const file = generateEnumsFile(expectContext(result.context));
+    const file = generateEnumsFile(context);
 
     expect(file?.content).toContain("export type Priority = 1 | 2;");
     expect(file?.content).toContain("export const Priority = {");
@@ -46,7 +46,7 @@ describe("generateEnumsFile", () => {
   });
 
   it("omits enum validate helpers when strict mode is disabled", () => {
-    const result = createGeneratorContext({
+    const context = createGeneratorContext({
       input: irb.pluginInput({
         ir: irb.schema({
           enums: [
@@ -64,15 +64,10 @@ describe("generateEnumsFile", () => {
       },
     });
 
-    const file = generateEnumsFile(expectContext(result.context));
+    const file = generateEnumsFile(context);
 
     expect(file?.content).toContain("parse(json: string): Mode {");
     expect(file?.content).not.toContain("const error = Mode.validate(input);");
     expect(file?.content).not.toContain("validate(input: unknown");
   });
 });
-
-function expectContext<T>(value: T | undefined): T {
-  expect(value).toBeDefined();
-  return value as T;
-}

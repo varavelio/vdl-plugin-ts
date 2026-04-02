@@ -5,7 +5,7 @@ import { generateConstantsFile } from "./constants";
 
 describe("generateConstantsFile", () => {
   it("renders constants with inferred TypeScript types", () => {
-    const result = createGeneratorContext({
+    const context = createGeneratorContext({
       input: irb.pluginInput({
         ir: irb.schema({
           enums: [
@@ -32,7 +32,7 @@ describe("generateConstantsFile", () => {
       },
     });
 
-    const file = generateConstantsFile(expectContext(result.context));
+    const file = generateConstantsFile(context);
 
     expect(file?.content).toContain(
       'export const apiVersion = "1.0.0" as const;',
@@ -45,8 +45,3 @@ describe("generateConstantsFile", () => {
     );
   });
 });
-
-function expectContext<T>(value: T | undefined): T {
-  expect(value).toBeDefined();
-  return value as T;
-}

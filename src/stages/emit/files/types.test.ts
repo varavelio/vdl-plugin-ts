@@ -5,7 +5,7 @@ import { generateTypesFile } from "./types";
 
 describe("generateTypesFile", () => {
   it("renders merged type namespaces with enum namespace imports", () => {
-    const result = createGeneratorContext({
+    const context = createGeneratorContext({
       input: irb.pluginInput({
         ir: irb.schema({
           enums: [
@@ -31,7 +31,7 @@ describe("generateTypesFile", () => {
       },
     });
 
-    const file = generateTypesFile(expectContext(result.context));
+    const file = generateTypesFile(context);
 
     expect(file?.content).toContain('import { Status } from "./enums.ts";');
     expect(file?.content).toContain("createdAt: Date;");
@@ -51,7 +51,7 @@ describe("generateTypesFile", () => {
   });
 
   it("omits type validate helpers when strict mode is disabled", () => {
-    const result = createGeneratorContext({
+    const context = createGeneratorContext({
       input: irb.pluginInput({
         ir: irb.schema({
           types: [
@@ -71,7 +71,7 @@ describe("generateTypesFile", () => {
       },
     });
 
-    const file = generateTypesFile(expectContext(result.context));
+    const file = generateTypesFile(context);
 
     expect(file?.content).toContain("parse(json: string): Payload {");
     expect(file?.content).not.toContain(
@@ -80,8 +80,3 @@ describe("generateTypesFile", () => {
     expect(file?.content).not.toContain("validate(input: unknown");
   });
 });
-
-function expectContext<T>(value: T | undefined): T {
-  expect(value).toBeDefined();
-  return value as T;
-}
