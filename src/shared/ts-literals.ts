@@ -1,4 +1,8 @@
-import type { LiteralValue, TypeRef } from "@varavel/vdl-plugin-sdk";
+import type {
+  LiteralValue,
+  ObjectEntry,
+  TypeRef,
+} from "@varavel/vdl-plugin-sdk";
 import { assert, fail } from "@varavel/vdl-plugin-sdk";
 import type { GeneratorContext } from "../stages/model/types";
 import { getArrayItemType, resolveNonAliasTypeRef } from "./ts-types";
@@ -154,7 +158,7 @@ function renderMapLiteral(
    * VDL maps compile to string-keyed records, so object literal syntax is the
    * natural constant representation.
    */
-  const entries = literal.objectEntries ?? [];
+  const entries = normalizeObjectEntries(literal.objectEntries ?? []);
   const valueType = requiredValue(
     typeRef.mapType,
     "Encountered a map type reference without a value type.",
@@ -192,7 +196,7 @@ function renderObjectLiteral(
   const fields = new Map(
     (typeRef.objectFields ?? []).map((field) => [field.name, field]),
   );
-  const entries = literal.objectEntries ?? [];
+  const entries = normalizeObjectEntries(literal.objectEntries ?? []);
   const renderedEntries: string[] = [];
 
   for (const entry of entries) {
@@ -259,6 +263,32 @@ function indent(depth: number): string {
    * TypeScript files.
    */
   return "  ".repeat(depth);
+}
+
+function normalizeObjectEntries(entries: ObjectEntry[]): ObjectEntry[] {
+  /**
+   * Spreads can produce duplicate object keys. Keep the first insertion slot but
+   * apply the last value so the rendered literal remains valid TypeScript.
+   */
+  if (entries.length < 2) {
+    return entries;
+  }
+
+  const normalized: ObjectEntry[] = [];
+  const indexesByKey = new Map<string, number>();
+
+  for (const entry of entries) {
+    const existingIndex = indexesByKey.get(entry.key);
+    if (existingIndex === undefined) {
+      indexesByKey.set(entry.key, normalized.length);
+      normalized.push(entry);
+      continue;
+    }
+
+    normalized[existingIndex] = entry;
+  }
+
+  return normalized;
 }
 
 function requiredValue<T>(value: T | null | undefined, message: string): T {
