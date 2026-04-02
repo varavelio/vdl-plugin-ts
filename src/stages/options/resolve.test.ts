@@ -6,8 +6,7 @@ describe("resolveGeneratorOptions", () => {
   it("resolves defaults", () => {
     const result = resolveGeneratorOptions(irb.pluginInput());
 
-    expect(result.errors).toEqual([]);
-    expect(result.options).toEqual({
+    expect(result).toEqual({
       genConsts: true,
       strict: true,
       importExtension: "js",
@@ -25,8 +24,7 @@ describe("resolveGeneratorOptions", () => {
       }),
     );
 
-    expect(result.errors).toEqual([]);
-    expect(result.options).toEqual({
+    expect(result).toEqual({
       genConsts: false,
       strict: false,
       importExtension: "ts",
@@ -42,7 +40,6 @@ describe("resolveGeneratorOptions", () => {
       }),
     );
 
-    expect(result.errors).toEqual([]);
-    expect(result.options?.importExtension).toBe("js");
+    expect(result.importExtension).toBe("js");
   });
 });

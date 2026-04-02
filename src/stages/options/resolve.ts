@@ -1,4 +1,4 @@
-import type { PluginInput, PluginOutputError } from "@varavel/vdl-plugin-sdk";
+import type { PluginInput } from "@varavel/vdl-plugin-sdk";
 import * as options from "@varavel/vdl-plugin-sdk/utils/options";
 import {
   IMPORT_EXTENSION_VALUES,
@@ -9,10 +9,7 @@ import type { GeneratorOptions } from "../model/types";
 /**
  * Resolves user-facing plugin options into a typed generator configuration.
  */
-export function resolveGeneratorOptions(input: PluginInput): {
-  options?: GeneratorOptions;
-  errors: PluginOutputError[];
-} {
+export function resolveGeneratorOptions(input: PluginInput): GeneratorOptions {
   const genConsts = options.getOptionBool(input.options, "genConsts", true);
   const strict = options.getOptionBool(input.options, "strict", true);
   const importExtension = options.getOptionEnum(
@@ -23,11 +20,8 @@ export function resolveGeneratorOptions(input: PluginInput): {
   ) as ImportExtension;
 
   return {
-    errors: [],
-    options: {
-      genConsts,
-      strict,
-      importExtension,
-    },
+    genConsts,
+    strict,
+    importExtension,
   };
 }
