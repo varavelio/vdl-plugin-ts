@@ -3318,12 +3318,11 @@ export const defaultRole = "admin" as const;
  * mergedInfo holds a generated VDL constant.
  */
 export const mergedInfo = {
-  "source": "core",
+  "source": "api",
   "attempts": [
     1,
     2
   ],
-  "source": "api",
   "roles": [
     "viewer",
     "admin"
