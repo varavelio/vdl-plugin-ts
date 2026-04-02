@@ -5,8 +5,8 @@ import type {
   TypeDef,
   TypeRef,
 } from "@varavel/vdl-plugin-sdk";
+import { assert, fail } from "@varavel/vdl-plugin-sdk";
 import type { GeneratorContext } from "../stages/model/types";
-import { expectValue, fail } from "./errors";
 import { renderPropertyName } from "./naming";
 
 /**
@@ -43,19 +43,19 @@ export function renderTypeScriptType(
     case "primitive":
       return renderPrimitiveType(typeRef.primitiveName);
     case "type":
-      return expectValue(
+      return requiredValue(
         typeRef.typeName,
         "Encountered a named type reference without a type name.",
       );
     case "enum":
-      return expectValue(
+      return requiredValue(
         typeRef.enumName,
         "Encountered an enum reference without an enum name.",
       );
     case "array":
       return `${renderTypeScriptType(getArrayItemType(typeRef), context)}[]`;
     case "map":
-      return `Record<string, ${renderTypeScriptType(expectValue(typeRef.mapType, "Encountered a map type reference without a value type."), context)}>`;
+      return `Record<string, ${renderTypeScriptType(requiredValue(typeRef.mapType, "Encountered a map type reference without a value type."), context)}>`;
     case "object":
       return renderInlineObjectType(typeRef.objectFields ?? [], context);
     default:
@@ -71,7 +71,7 @@ export function resolveNamedType(
   context: GeneratorContext,
   visited = new Set<string>(),
 ): TypeDef {
-  const typeName = expectValue(
+  const typeName = requiredValue(
     typeRef.typeName,
     "Encountered a named type reference without a type name.",
   );
@@ -81,7 +81,7 @@ export function resolveNamedType(
   }
 
   visited.add(typeName);
-  return expectValue(
+  return requiredValue(
     context.typeDefsByName.get(typeName),
     `Unknown VDL type reference ${JSON.stringify(typeName)}.`,
   );
@@ -108,7 +108,7 @@ export function resolveNonAliasTypeRef(
  */
 export function getArrayItemType(typeRef: TypeRef): TypeRef {
   const arrayDims = typeRef.arrayDims ?? 1;
-  const arrayType = expectValue(
+  const arrayType = requiredValue(
     typeRef.arrayType,
     "Encountered an array type reference without an element type.",
   );
@@ -149,4 +149,9 @@ function renderInlineObjectType(
   g.line("}");
 
   return g.toString().trim();
+}
+
+function requiredValue<T>(value: T | null | undefined, message: string): T {
+  assert(value !== null && value !== undefined, message);
+  return value;
 }

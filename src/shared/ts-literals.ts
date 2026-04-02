@@ -1,6 +1,6 @@
 import type { LiteralValue, TypeRef } from "@varavel/vdl-plugin-sdk";
+import { assert, fail } from "@varavel/vdl-plugin-sdk";
 import type { GeneratorContext } from "../stages/model/types";
-import { expectValue, fail } from "./errors";
 import { getArrayItemType, resolveNonAliasTypeRef } from "./ts-types";
 
 /**
@@ -32,10 +32,9 @@ function renderLiteralValue(
     case "enum":
       return renderEnumLiteral(literal);
     case "type":
-      fail(
+      return fail(
         "Named aliases should have been resolved before rendering literals.",
       );
-      return "";
     case "array":
       return renderArrayLiteral(resolvedTypeRef, literal, context, depth);
     case "map":
@@ -43,10 +42,9 @@ function renderLiteralValue(
     case "object":
       return renderObjectLiteral(resolvedTypeRef, literal, context, depth);
     default:
-      fail(
+      return fail(
         `Unsupported VDL literal type kind ${JSON.stringify(resolvedTypeRef.kind)}.`,
       );
-      return "";
   }
 }
 
@@ -61,19 +59,19 @@ function renderPrimitiveLiteral(
   switch (primitiveName) {
     case "string":
       return JSON.stringify(
-        expectValue(literal.stringValue, "Expected a string literal value."),
+        requiredValue(literal.stringValue, "Expected a string literal value."),
       );
     case "int":
       return String(
-        expectValue(literal.intValue, "Expected an int literal value."),
+        requiredValue(literal.intValue, "Expected an int literal value."),
       );
     case "float":
       return String(
-        expectValue(literal.floatValue, "Expected a float literal value."),
+        requiredValue(literal.floatValue, "Expected a float literal value."),
       );
     case "bool":
       return String(
-        expectValue(literal.boolValue, "Expected a bool literal value."),
+        requiredValue(literal.boolValue, "Expected a bool literal value."),
       );
     case "datetime": {
       if (literal.kind !== "string") {
@@ -82,7 +80,7 @@ function renderPrimitiveLiteral(
         );
       }
 
-      const stringValue = expectValue(
+      const stringValue = requiredValue(
         literal.stringValue,
         "Expected a string-backed datetime literal.",
       );
@@ -90,8 +88,7 @@ function renderPrimitiveLiteral(
       return `new Date(${JSON.stringify(stringValue)})`;
     }
     default:
-      fail("Encountered an unsupported primitive literal type.");
-      return "";
+      return fail("Encountered an unsupported primitive literal type.");
   }
 }
 
@@ -103,18 +100,17 @@ function renderEnumLiteral(literal: LiteralValue): string {
   switch (literal.kind) {
     case "string":
       return JSON.stringify(
-        expectValue(
+        requiredValue(
           literal.stringValue,
           "Expected a string enum literal value.",
         ),
       );
     case "int":
       return String(
-        expectValue(literal.intValue, "Expected an int enum literal value."),
+        requiredValue(literal.intValue, "Expected an int enum literal value."),
       );
     default:
-      fail("Enum literals must be string or int values.");
-      return "";
+      return fail("Enum literals must be string or int values.");
   }
 }
 
@@ -159,7 +155,7 @@ function renderMapLiteral(
    * natural constant representation.
    */
   const entries = literal.objectEntries ?? [];
-  const valueType = expectValue(
+  const valueType = requiredValue(
     typeRef.mapType,
     "Encountered a map type reference without a value type.",
   );
@@ -263,4 +259,9 @@ function indent(depth: number): string {
    * TypeScript files.
    */
   return "  ".repeat(depth);
+}
+
+function requiredValue<T>(value: T | null | undefined, message: string): T {
+  assert(value !== null && value !== undefined, message);
+  return value;
 }
