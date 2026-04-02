@@ -36,7 +36,6 @@ When updating this document, do so with the context of the entire document in mi
 ### Shared Helpers
 
 - `src/shared/comments.ts`: doc and deprecation rendering.
-- `src/shared/errors.ts`: generation error helpers and conversion to plugin diagnostics.
 - `src/shared/imports.ts`: internal import-extension policy.
 - `src/shared/naming.ts`: inline type naming plus property helpers.
 - `src/shared/ts-types.ts`: TypeScript type rendering and alias resolution helpers.
@@ -46,6 +45,7 @@ When updating this document, do so with the context of the entire document in mi
 
 - Keep implementations aligned with SDK patterns from the manual.
 - Prefer SDK utilities over custom helpers when the SDK already provides the behavior.
+- Prefer SDK `assert` / `fail` for generator diagnostics; keep `src/generate.ts` focused on orchestration and let `definePlugin(...)` handle final error conversion.
 - The incoming IR is already semantically validated. Plugin-side validation should focus on TypeScript generation concerns.
 - `datetime` values must validate from JSON strings and hydrate to real `Date` instances.
 - Required-field validation must use presence checks, not truthiness checks.
