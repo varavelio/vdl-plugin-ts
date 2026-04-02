@@ -3,10 +3,10 @@ import type {
   Field,
   LiteralValue,
   ObjectEntry,
-  PluginOutputError,
   TypeDef,
   TypeRef,
 } from "@varavel/vdl-plugin-sdk";
+import { fail } from "@varavel/vdl-plugin-sdk";
 import * as strings from "@varavel/vdl-plugin-sdk/utils/strings";
 import type { ConstantDescriptor } from "./types";
 
@@ -15,10 +15,7 @@ import type { ConstantDescriptor } from "./types";
  */
 export function buildConstantDescriptors(options: {
   schema: { constants: ConstantDef[]; types: TypeDef[] };
-}): {
-  constants: ConstantDescriptor[];
-  errors: PluginOutputError[];
-} {
+}): ConstantDescriptor[] {
   const inferredTypes = new Map<string, TypeRef>();
 
   for (const typeDef of options.schema.types) {
@@ -30,7 +27,6 @@ export function buildConstantDescriptors(options: {
   }
 
   const constants: ConstantDescriptor[] = [];
-  const errors: PluginOutputError[] = [];
 
   for (const constant of options.schema.constants) {
     const inferredType = inferredTypes.get(toConstLookupKey(constant.name));
@@ -41,11 +37,10 @@ export function buildConstantDescriptors(options: {
 
     const inference = inferTypeRefFromLiteral(constant.value);
     if (!inference.typeRef) {
-      errors.push({
-        message: `Could not infer a TypeScript type for constant ${JSON.stringify(constant.name)}: ${inference.error ?? "unknown inference failure"}`,
-        position: constant.position,
-      });
-      continue;
+      fail(
+        `Could not infer a TypeScript type for constant ${JSON.stringify(constant.name)}: ${inference.error ?? "unknown inference failure"}`,
+        constant.position,
+      );
     }
 
     constants.push({
@@ -54,10 +49,7 @@ export function buildConstantDescriptors(options: {
     });
   }
 
-  return {
-    constants,
-    errors,
-  };
+  return constants;
 }
 
 function inferTypeRefFromLiteral(literal: LiteralValue): {
