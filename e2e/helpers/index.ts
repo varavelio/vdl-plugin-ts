@@ -1,12 +1,12 @@
+import { ok } from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import * as misc from "@varavel/vdl-plugin-sdk/utils/misc";
 
 /**
  * Asserts that a condition is truthy.
  */
 export function assert(condition: unknown, message: string): asserts condition {
-  misc.assert(Boolean(condition), message);
+  ok(condition, message);
 }
 
 /**
