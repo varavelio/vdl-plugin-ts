@@ -25,11 +25,47 @@ __export(index_exports, {
 });
 module.exports = __toCommonJS(index_exports);
 
+// node_modules/@varavel/vdl-plugin-sdk/dist/core/errors.js
+var _a;
+var PluginError = (_a = class extends Error {
+  constructor(message, position) {
+    super(message);
+    this.name = "PluginError";
+    this.position = position;
+  }
+}, __name(_a, "PluginError"), _a);
+function fail(message, position) {
+  throw new PluginError(message, position);
+}
+__name(fail, "fail");
+function assert(condition, message, position) {
+  if (!condition) throw new PluginError(message, position);
+}
+__name(assert, "assert");
+
 // node_modules/@varavel/vdl-plugin-sdk/dist/core/define-plugin.js
 function definePlugin(handler) {
-  return handler;
+  return (input) => {
+    try {
+      return handler(input);
+    } catch (error) {
+      return {
+        files: [],
+        errors: [toPluginError(error)]
+      };
+    }
+  };
 }
 __name(definePlugin, "definePlugin");
+function toPluginError(error) {
+  if (error instanceof PluginError) return {
+    message: error.message,
+    position: error.position
+  };
+  if (error instanceof Error) return { message: error.message };
+  return { message: "An unknown generation error occurred." };
+}
+__name(toPluginError, "toPluginError");
 
 // node_modules/@varavel/vdl-plugin-sdk/dist/core/types/enums.js
 var EnumValueType = {
@@ -800,55 +836,6 @@ var _vdl2 = {
   }
 };
 
-// node_modules/@varavel/vdl-plugin-sdk/dist/node_modules/es-toolkit/dist/util/invariant.js
-function invariant(condition, message) {
-  if (condition) return;
-  if (typeof message === "string") throw new Error(message);
-  throw message;
-}
-__name(invariant, "invariant");
-
-// src/shared/errors.ts
-var _GenerationError = class _GenerationError extends Error {
-  constructor(message, position) {
-    super(message);
-    this.name = "GenerationError";
-    this.position = position;
-  }
-};
-__name(_GenerationError, "GenerationError");
-var GenerationError = _GenerationError;
-function fail(message, position) {
-  throw new GenerationError(message, position);
-}
-__name(fail, "fail");
-function expectCondition(condition, message, position) {
-  invariant(condition, new GenerationError(message, position));
-}
-__name(expectCondition, "expectCondition");
-function expectValue(value, message, position) {
-  expectCondition(value !== null && value !== void 0, message, position);
-  return value;
-}
-__name(expectValue, "expectValue");
-function toPluginOutputError(error) {
-  if (error instanceof GenerationError) {
-    return {
-      message: error.message,
-      position: error.position
-    };
-  }
-  if (error instanceof Error) {
-    return {
-      message: error.message
-    };
-  }
-  return {
-    message: "An unknown generation error occurred."
-  };
-}
-__name(toPluginOutputError, "toPluginOutputError");
-
 // node_modules/@varavel/vdl-plugin-sdk/dist/node_modules/es-toolkit/dist/array/compact.js
 function compact(arr) {
   const result = [];
@@ -861,8 +848,8 @@ function compact(arr) {
 __name(compact, "compact");
 
 // node_modules/@varavel/gen/dist/index.js
-var _a;
-var Generator = (_a = class {
+var _a2;
+var Generator = (_a2 = class {
   constructor() {
     this.chunks = [];
     this.indentLevel = 0;
@@ -970,7 +957,7 @@ var Generator = (_a = class {
   toString() {
     return this.chunks.join("");
   }
-}, __name(_a, "Generator"), _a);
+}, __name(_a2, "Generator"), _a2);
 function newGenerator() {
   return new Generator();
 }
@@ -1151,8 +1138,8 @@ function writeDocComment(g, options) {
 }
 __name(writeDocComment, "writeDocComment");
 function buildDocCommentLines(options) {
-  var _a2, _b, _c;
-  const lines = (_c = (_b = (_a2 = options.doc) != null ? _a2 : options.fallback) == null ? void 0 : _b.split("\n")) != null ? _c : [];
+  var _a3, _b, _c;
+  const lines = (_c = (_b = (_a3 = options.doc) != null ? _a3 : options.fallback) == null ? void 0 : _b.split("\n")) != null ? _c : [];
   const deprecatedMessage = getDeprecatedMessage(options.annotations);
   if (!deprecatedMessage) return lines;
   if (lines.length === 0) return [`@deprecated ${deprecatedMessage}`];
@@ -1232,33 +1219,33 @@ function renderPrimitiveType(primitiveName) {
 }
 __name(renderPrimitiveType, "renderPrimitiveType");
 function renderTypeScriptType(typeRef, context) {
-  var _a2;
+  var _a3;
   switch (typeRef.kind) {
     case "primitive":
       return renderPrimitiveType(typeRef.primitiveName);
     case "type":
-      return expectValue(
+      return requiredValue(
         typeRef.typeName,
         "Encountered a named type reference without a type name."
       );
     case "enum":
-      return expectValue(
+      return requiredValue(
         typeRef.enumName,
         "Encountered an enum reference without an enum name."
       );
     case "array":
       return `${renderTypeScriptType(getArrayItemType(typeRef), context)}[]`;
     case "map":
-      return `Record<string, ${renderTypeScriptType(expectValue(typeRef.mapType, "Encountered a map type reference without a value type."), context)}>`;
+      return `Record<string, ${renderTypeScriptType(requiredValue(typeRef.mapType, "Encountered a map type reference without a value type."), context)}>`;
     case "object":
-      return renderInlineObjectType((_a2 = typeRef.objectFields) != null ? _a2 : [], context);
+      return renderInlineObjectType((_a3 = typeRef.objectFields) != null ? _a3 : [], context);
     default:
       fail(`Unsupported VDL type kind ${JSON.stringify(typeRef.kind)}.`);
   }
 }
 __name(renderTypeScriptType, "renderTypeScriptType");
 function resolveNamedType(typeRef, context, visited = /* @__PURE__ */ new Set()) {
-  const typeName = expectValue(
+  const typeName = requiredValue(
     typeRef.typeName,
     "Encountered a named type reference without a type name."
   );
@@ -1266,7 +1253,7 @@ function resolveNamedType(typeRef, context, visited = /* @__PURE__ */ new Set())
     fail(`Detected a type cycle while resolving ${JSON.stringify(typeName)}.`);
   }
   visited.add(typeName);
-  return expectValue(
+  return requiredValue(
     context.typeDefsByName.get(typeName),
     `Unknown VDL type reference ${JSON.stringify(typeName)}.`
   );
@@ -1281,9 +1268,9 @@ function resolveNonAliasTypeRef(typeRef, context, visited = /* @__PURE__ */ new 
 }
 __name(resolveNonAliasTypeRef, "resolveNonAliasTypeRef");
 function getArrayItemType(typeRef) {
-  var _a2;
-  const arrayDims = (_a2 = typeRef.arrayDims) != null ? _a2 : 1;
-  const arrayType = expectValue(
+  var _a3;
+  const arrayDims = (_a3 = typeRef.arrayDims) != null ? _a3 : 1;
+  const arrayType = requiredValue(
     typeRef.arrayType,
     "Encountered an array type reference without an element type."
   );
@@ -1315,6 +1302,11 @@ function renderInlineObjectType(fields, context) {
   return g.toString().trim();
 }
 __name(renderInlineObjectType, "renderInlineObjectType");
+function requiredValue(value, message) {
+  assert(value !== null && value !== void 0, message);
+  return value;
+}
+__name(requiredValue, "requiredValue");
 
 // src/shared/ts-literals.ts
 function renderLiteralValueExpression(typeRef, literal, context) {
@@ -1329,10 +1321,9 @@ function renderLiteralValue(typeRef, literal, context, depth) {
     case "enum":
       return renderEnumLiteral(literal);
     case "type":
-      fail(
+      return fail(
         "Named aliases should have been resolved before rendering literals."
       );
-      return "";
     case "array":
       return renderArrayLiteral(resolvedTypeRef, literal, context, depth);
     case "map":
@@ -1340,10 +1331,9 @@ function renderLiteralValue(typeRef, literal, context, depth) {
     case "object":
       return renderObjectLiteral(resolvedTypeRef, literal, context, depth);
     default:
-      fail(
+      return fail(
         `Unsupported VDL literal type kind ${JSON.stringify(resolvedTypeRef.kind)}.`
       );
-      return "";
   }
 }
 __name(renderLiteralValue, "renderLiteralValue");
@@ -1351,19 +1341,19 @@ function renderPrimitiveLiteral(primitiveName, literal) {
   switch (primitiveName) {
     case "string":
       return JSON.stringify(
-        expectValue(literal.stringValue, "Expected a string literal value.")
+        requiredValue2(literal.stringValue, "Expected a string literal value.")
       );
     case "int":
       return String(
-        expectValue(literal.intValue, "Expected an int literal value.")
+        requiredValue2(literal.intValue, "Expected an int literal value.")
       );
     case "float":
       return String(
-        expectValue(literal.floatValue, "Expected a float literal value.")
+        requiredValue2(literal.floatValue, "Expected a float literal value.")
       );
     case "bool":
       return String(
-        expectValue(literal.boolValue, "Expected a bool literal value.")
+        requiredValue2(literal.boolValue, "Expected a bool literal value.")
       );
     case "datetime": {
       if (literal.kind !== "string") {
@@ -1371,15 +1361,14 @@ function renderPrimitiveLiteral(primitiveName, literal) {
           "Datetime literals must be backed by strings in generated TypeScript constants."
         );
       }
-      const stringValue = expectValue(
+      const stringValue = requiredValue2(
         literal.stringValue,
         "Expected a string-backed datetime literal."
       );
       return `new Date(${JSON.stringify(stringValue)})`;
     }
     default:
-      fail("Encountered an unsupported primitive literal type.");
-      return "";
+      return fail("Encountered an unsupported primitive literal type.");
   }
 }
 __name(renderPrimitiveLiteral, "renderPrimitiveLiteral");
@@ -1387,24 +1376,23 @@ function renderEnumLiteral(literal) {
   switch (literal.kind) {
     case "string":
       return JSON.stringify(
-        expectValue(
+        requiredValue2(
           literal.stringValue,
           "Expected a string enum literal value."
         )
       );
     case "int":
       return String(
-        expectValue(literal.intValue, "Expected an int enum literal value.")
+        requiredValue2(literal.intValue, "Expected an int enum literal value.")
       );
     default:
-      fail("Enum literals must be string or int values.");
-      return "";
+      return fail("Enum literals must be string or int values.");
   }
 }
 __name(renderEnumLiteral, "renderEnumLiteral");
 function renderArrayLiteral(typeRef, literal, context, depth) {
-  var _a2;
-  const items = (_a2 = literal.arrayItems) != null ? _a2 : [];
+  var _a3;
+  const items = (_a3 = literal.arrayItems) != null ? _a3 : [];
   const itemType = getArrayItemType(typeRef);
   if (items.length === 0) {
     return "[]";
@@ -1422,9 +1410,9 @@ function renderArrayLiteral(typeRef, literal, context, depth) {
 }
 __name(renderArrayLiteral, "renderArrayLiteral");
 function renderMapLiteral(typeRef, literal, context, depth) {
-  var _a2;
-  const entries = (_a2 = literal.objectEntries) != null ? _a2 : [];
-  const valueType = expectValue(
+  var _a3;
+  const entries = (_a3 = literal.objectEntries) != null ? _a3 : [];
+  const valueType = requiredValue2(
     typeRef.mapType,
     "Encountered a map type reference without a value type."
   );
@@ -1445,9 +1433,9 @@ function renderMapLiteral(typeRef, literal, context, depth) {
 }
 __name(renderMapLiteral, "renderMapLiteral");
 function renderObjectLiteral(typeRef, literal, context, depth) {
-  var _a2, _b, _c;
+  var _a3, _b, _c;
   const fields = new Map(
-    ((_a2 = typeRef.objectFields) != null ? _a2 : []).map((field) => [field.name, field])
+    ((_a3 = typeRef.objectFields) != null ? _a3 : []).map((field) => [field.name, field])
   );
   const entries = (_b = literal.objectEntries) != null ? _b : [];
   const renderedEntries = [];
@@ -1498,6 +1486,11 @@ function indent(depth) {
   return "  ".repeat(depth);
 }
 __name(indent, "indent");
+function requiredValue2(value, message) {
+  assert(value !== null && value !== void 0, message);
+  return value;
+}
+__name(requiredValue2, "requiredValue");
 
 // src/stages/emit/files/constants.ts
 function generateConstantsFile(context) {
@@ -1783,8 +1776,8 @@ function renderTypeDeclaration(g, typeDef, context) {
   }
   g.line(`export type ${typeDef.name} = {`);
   g.block(() => {
-    var _a2;
-    for (const field of (_a2 = typeDef.typeRef.objectFields) != null ? _a2 : []) {
+    var _a3;
+    for (const field of (_a3 = typeDef.typeRef.objectFields) != null ? _a3 : []) {
       writeDocComment(g, {
         doc: field.doc,
         annotations: field.annotations
@@ -1854,7 +1847,7 @@ function renderTypeNamespace(g, typeDef, strict) {
 }
 __name(renderTypeNamespace, "renderTypeNamespace");
 function renderHydrationExpression(typeRef, valueExpression, depth) {
-  var _a2;
+  var _a3;
   switch (typeRef.kind) {
     case "primitive":
       return typeRef.primitiveName === "datetime" ? `_vdl.hydrateDateInput(${valueExpression})` : valueExpression;
@@ -1871,7 +1864,7 @@ function renderHydrationExpression(typeRef, valueExpression, depth) {
       return `_vdl.mapRecord(${valueExpression}, (${mapValueName}) => ${renderHydrationExpression(typeRef.mapType, mapValueName, depth + 1)})`;
     }
     case "object": {
-      const fields = (_a2 = typeRef.objectFields) != null ? _a2 : [];
+      const fields = (_a3 = typeRef.objectFields) != null ? _a3 : [];
       if (fields.length === 0) {
         return "{}";
       }
@@ -1915,7 +1908,7 @@ function renderHydrationExpression(typeRef, valueExpression, depth) {
 }
 __name(renderHydrationExpression, "renderHydrationExpression");
 function writeValidationStatements(g, options) {
-  var _a2, _b;
+  var _a3, _b;
   switch (options.typeRef.kind) {
     case "primitive":
       writePrimitiveValidation(
@@ -2024,7 +2017,7 @@ function writeValidationStatements(g, options) {
       g.line(
         `const ${recordName} = ${options.valueExpression} as Record<string, unknown>;`
       );
-      for (let fieldIndex = 0; fieldIndex < ((_a2 = options.typeRef.objectFields) != null ? _a2 : []).length; fieldIndex += 1) {
+      for (let fieldIndex = 0; fieldIndex < ((_a3 = options.typeRef.objectFields) != null ? _a3 : []).length; fieldIndex += 1) {
         const field = (_b = options.typeRef.objectFields) == null ? void 0 : _b[fieldIndex];
         const fieldPathName = `fieldPath${options.depth}_${fieldIndex}`;
         const fieldValueExpression = renderRecordAccess(recordName, field.name);
@@ -2303,7 +2296,7 @@ __name(generateFiles, "generateFiles");
 
 // src/stages/model/constants.ts
 function buildConstantDescriptors(options) {
-  var _a2;
+  var _a3;
   const inferredTypes = /* @__PURE__ */ new Map();
   for (const typeDef of options.schema.types) {
     if (!typeDef.name.startsWith("$Const") || typeDef.name.length <= 6) {
@@ -2312,7 +2305,6 @@ function buildConstantDescriptors(options) {
     inferredTypes.set(toConstLookupKey(typeDef.name.slice(6)), typeDef.typeRef);
   }
   const constants = [];
-  const errors = [];
   for (const constant of options.schema.constants) {
     const inferredType = inferredTypes.get(toConstLookupKey(constant.name));
     if (inferredType) {
@@ -2321,25 +2313,21 @@ function buildConstantDescriptors(options) {
     }
     const inference = inferTypeRefFromLiteral(constant.value);
     if (!inference.typeRef) {
-      errors.push({
-        message: `Could not infer a TypeScript type for constant ${JSON.stringify(constant.name)}: ${(_a2 = inference.error) != null ? _a2 : "unknown inference failure"}`,
-        position: constant.position
-      });
-      continue;
+      fail(
+        `Could not infer a TypeScript type for constant ${JSON.stringify(constant.name)}: ${(_a3 = inference.error) != null ? _a3 : "unknown inference failure"}`,
+        constant.position
+      );
     }
     constants.push({
       def: constant,
       typeRef: inference.typeRef
     });
   }
-  return {
-    constants,
-    errors
-  };
+  return constants;
 }
 __name(buildConstantDescriptors, "buildConstantDescriptors");
 function inferTypeRefFromLiteral(literal) {
-  var _a2, _b;
+  var _a3, _b;
   switch (literal.kind) {
     case "string":
       return { typeRef: { kind: "primitive", primitiveName: "string" } };
@@ -2350,7 +2338,7 @@ function inferTypeRefFromLiteral(literal) {
     case "bool":
       return { typeRef: { kind: "primitive", primitiveName: "bool" } };
     case "array":
-      return inferArrayTypeRef((_a2 = literal.arrayItems) != null ? _a2 : []);
+      return inferArrayTypeRef((_a3 = literal.arrayItems) != null ? _a3 : []);
     case "object":
       return inferObjectTypeRef((_b = literal.objectEntries) != null ? _b : []);
     default:
@@ -2421,7 +2409,7 @@ function inferObjectTypeRef(entries) {
 }
 __name(inferObjectTypeRef, "inferObjectTypeRef");
 function areTypeRefsEquivalent(left, right) {
-  var _a2, _b, _c, _d;
+  var _a3, _b, _c, _d;
   if (left.kind !== right.kind) {
     return false;
   }
@@ -2433,7 +2421,7 @@ function areTypeRefsEquivalent(left, right) {
     case "enum":
       return left.enumName === right.enumName && left.enumType === right.enumType;
     case "array":
-      return ((_a2 = left.arrayDims) != null ? _a2 : 1) === ((_b = right.arrayDims) != null ? _b : 1) && areTypeRefsEquivalent(
+      return ((_a3 = left.arrayDims) != null ? _a3 : 1) === ((_b = right.arrayDims) != null ? _b : 1) && areTypeRefsEquivalent(
         left.arrayType,
         right.arrayType
       );
@@ -2473,7 +2461,7 @@ __name(toConstLookupKey, "toConstLookupKey");
 // src/stages/model/build-context.ts
 function createGeneratorContext(options) {
   const schema = hoistAnonymousTypes(options.input.ir);
-  const constantResult = buildConstantDescriptors({ schema });
+  const constants = buildConstantDescriptors({ schema });
   const typeDefsByName = new Map(
     schema.types.map((typeDef) => [typeDef.name, typeDef])
   );
@@ -2483,22 +2471,13 @@ function createGeneratorContext(options) {
   const exportedTypes = schema.types.filter(
     (typeDef) => !typeDef.name.startsWith("$Const")
   );
-  const errors = [...constantResult.errors];
-  if (errors.length > 0) {
-    return {
-      errors
-    };
-  }
   return {
-    errors: [],
-    context: {
-      schema,
-      options: options.generatorOptions,
-      typeDefsByName,
-      enumDefsByName,
-      exportedTypes,
-      constants: constantResult.constants
-    }
+    schema,
+    options: options.generatorOptions,
+    typeDefsByName,
+    enumDefsByName,
+    exportedTypes,
+    constants
   };
 }
 __name(createGeneratorContext, "createGeneratorContext");
@@ -2551,42 +2530,19 @@ function resolveGeneratorOptions(input) {
     "js"
   );
   return {
-    errors: [],
-    options: {
-      genConsts,
-      strict,
-      importExtension
-    }
+    genConsts,
+    strict,
+    importExtension
   };
 }
 __name(resolveGeneratorOptions, "resolveGeneratorOptions");
 
 // src/generate.ts
 function generate(input) {
-  try {
-    const optionsResult = resolveGeneratorOptions(input);
-    if (optionsResult.errors.length > 0 || !optionsResult.options) {
-      return {
-        errors: optionsResult.errors
-      };
-    }
-    const contextResult = createGeneratorContext({
-      input,
-      generatorOptions: optionsResult.options
-    });
-    if (contextResult.errors.length > 0 || !contextResult.context) {
-      return {
-        errors: contextResult.errors
-      };
-    }
-    return {
-      files: generateFiles(contextResult.context)
-    };
-  } catch (error) {
-    return {
-      errors: [toPluginOutputError(error)]
-    };
-  }
+  const generatorOptions = resolveGeneratorOptions(input);
+  const context = createGeneratorContext({ input, generatorOptions });
+  const files = generateFiles(context);
+  return { files };
 }
 __name(generate, "generate");
 
