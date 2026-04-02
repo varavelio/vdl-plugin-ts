@@ -1,4 +1,4 @@
-import type { PluginInput, PluginOutputError } from "@varavel/vdl-plugin-sdk";
+import type { PluginInput } from "@varavel/vdl-plugin-sdk";
 import * as ir from "@varavel/vdl-plugin-sdk/utils/ir";
 import { buildConstantDescriptors } from "./constants";
 import type { GeneratorContext, GeneratorOptions } from "./types";
@@ -9,9 +9,9 @@ import type { GeneratorContext, GeneratorOptions } from "./types";
 export function createGeneratorContext(options: {
   input: PluginInput;
   generatorOptions: GeneratorOptions;
-}): { context?: GeneratorContext; errors: PluginOutputError[] } {
+}): GeneratorContext {
   const schema = ir.hoistAnonymousTypes(options.input.ir);
-  const constantResult = buildConstantDescriptors({ schema });
+  const constants = buildConstantDescriptors({ schema });
   const typeDefsByName = new Map(
     schema.types.map((typeDef) => [typeDef.name, typeDef]),
   );
@@ -22,23 +22,12 @@ export function createGeneratorContext(options: {
     (typeDef) => !typeDef.name.startsWith("$Const"),
   );
 
-  const errors = [...constantResult.errors];
-
-  if (errors.length > 0) {
-    return {
-      errors,
-    };
-  }
-
   return {
-    errors: [],
-    context: {
-      schema,
-      options: options.generatorOptions,
-      typeDefsByName,
-      enumDefsByName,
-      exportedTypes,
-      constants: constantResult.constants,
-    },
+    schema,
+    options: options.generatorOptions,
+    typeDefsByName,
+    enumDefsByName,
+    exportedTypes,
+    constants,
   };
 }

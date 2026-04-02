@@ -4,7 +4,7 @@ import { createGeneratorContext } from "./build-context";
 
 describe("createGeneratorContext", () => {
   it("hoists nested inline object types and excludes synthetic constant helpers", () => {
-    const result = createGeneratorContext({
+    const context = createGeneratorContext({
       input: irb.pluginInput({
         ir: irb.schema({
           types: [
@@ -33,8 +33,6 @@ describe("createGeneratorContext", () => {
       },
     });
 
-    const context = expectContext(result.context);
-    expect(result.errors).toEqual([]);
     expect(context.exportedTypes.map((typeDef) => typeDef.name)).toEqual([
       "Envelope",
       "EnvelopePayload",
@@ -43,7 +41,7 @@ describe("createGeneratorContext", () => {
   });
 
   it("infers constant object types when no synthetic constant helper type exists", () => {
-    const result = createGeneratorContext({
+    const context = createGeneratorContext({
       input: irb.pluginInput({
         ir: irb.schema({
           constants: [
@@ -64,16 +62,9 @@ describe("createGeneratorContext", () => {
       },
     });
 
-    const context = expectContext(result.context);
-    expect(result.errors).toEqual([]);
     expect(context.constants[0]?.typeRef.kind).toBe("object");
     expect(
       context.constants[0]?.typeRef.objectFields?.map((field) => field.name),
     ).toEqual(["env", "region"]);
   });
 });
-
-function expectContext<T>(value: T | undefined): T {
-  expect(value).toBeDefined();
-  return value as T;
-}
