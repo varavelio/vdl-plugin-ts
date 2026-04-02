@@ -1411,7 +1411,7 @@ function renderArrayLiteral(typeRef, literal, context, depth) {
 __name(renderArrayLiteral, "renderArrayLiteral");
 function renderMapLiteral(typeRef, literal, context, depth) {
   var _a3;
-  const entries = (_a3 = literal.objectEntries) != null ? _a3 : [];
+  const entries = normalizeObjectEntries((_a3 = literal.objectEntries) != null ? _a3 : []);
   const valueType = requiredValue2(
     typeRef.mapType,
     "Encountered a map type reference without a value type."
@@ -1437,7 +1437,7 @@ function renderObjectLiteral(typeRef, literal, context, depth) {
   const fields = new Map(
     ((_a3 = typeRef.objectFields) != null ? _a3 : []).map((field) => [field.name, field])
   );
-  const entries = (_b = literal.objectEntries) != null ? _b : [];
+  const entries = normalizeObjectEntries((_b = literal.objectEntries) != null ? _b : []);
   const renderedEntries = [];
   for (const entry of entries) {
     const field = fields.get(entry.key);
@@ -1486,6 +1486,24 @@ function indent(depth) {
   return "  ".repeat(depth);
 }
 __name(indent, "indent");
+function normalizeObjectEntries(entries) {
+  if (entries.length < 2) {
+    return entries;
+  }
+  const normalized = [];
+  const indexesByKey = /* @__PURE__ */ new Map();
+  for (const entry of entries) {
+    const existingIndex = indexesByKey.get(entry.key);
+    if (existingIndex === void 0) {
+      indexesByKey.set(entry.key, normalized.length);
+      normalized.push(entry);
+      continue;
+    }
+    normalized[existingIndex] = entry;
+  }
+  return normalized;
+}
+__name(normalizeObjectEntries, "normalizeObjectEntries");
 function requiredValue2(value, message) {
   assert(value !== null && value !== void 0, message);
   return value;
