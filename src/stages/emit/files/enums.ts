@@ -47,15 +47,11 @@ function renderEnum(
     fallback: `${enumDef.name} declares a generated VDL enum.`,
   });
 
-  if (enumDef.members.length === 0) {
-    g.line(`export type ${enumDef.name} = never;`);
-  } else {
-    g.line(
-      `export type ${enumDef.name} = ${enumDef.members
-        .map((member) => renderEnumMemberLiteral(member.value))
-        .join(" | ")};`,
-    );
-  }
+  g.line(
+    `export type ${enumDef.name} = ${enumDef.members
+      .map((member) => renderEnumMemberLiteral(member.value))
+      .join(" | ")};`,
+  );
   g.break();
 
   writeDocComment(g, {

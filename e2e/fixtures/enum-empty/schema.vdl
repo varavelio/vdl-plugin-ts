@@ -1,5 +1,0 @@
-enum Nothing {}
-
-type Wrapper {
-  value? Nothing
-}
