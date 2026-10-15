@@ -38,7 +38,7 @@ const config = {
   version 1
   plugins [
     {
-      src "varavelio/vdl-plugin-ts@<version>" // Pin a version from releases
+      src "varavelio/vdl-plugin-ts@<version>" // Use a version from plugin releases
       schema "./schema.vdl"
       outDir "./gen"
     }
