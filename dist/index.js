@@ -69,32 +69,71 @@ __name(toPluginError, "toPluginError");
 
 // node_modules/@varavel/vdl-plugin-sdk/dist/core/types/enums.js
 var EnumValueType = {
+  /**
+  * Represents the String member of the EnumValueType enum.
+  */
   String: "string",
+  /**
+  * Represents the Int member of the EnumValueType enum.
+  */
   Int: "int",
+  /**
+  * Returns every declared EnumValueType value in definition order.
+  */
   values() {
     return ["string", "int"];
   },
+  /**
+  * Parses a JSON string into a validated and hydrated EnumValueType value.
+  */
   parse(json) {
     const input = _vdl.parseJson(json);
     const error = EnumValueType.validate(input);
     if (error !== null) throw new Error(error);
     return EnumValueType.hydrate(input);
   },
+  /**
+  * Performs structural enum validation only (membership in EnumValueType); it does not enforce business rules.
+  */
   validate(input, path = "EnumValueType") {
     if (!_vdl.arrayIncludes(EnumValueType.values(), input)) return `${path}: invalid value "${String(input)}" for EnumValueType enum`;
     return null;
   },
+  /**
+  * Hydrates a validated EnumValueType value. Enums return the input unchanged to keep the generated API uniform.
+  */
   hydrate(input) {
     return input;
   }
 };
 var LiteralKind = {
+  /**
+  * Represents the String member of the LiteralKind enum.
+  */
   String: "string",
+  /**
+  * Represents the Int member of the LiteralKind enum.
+  */
   Int: "int",
+  /**
+  * Represents the Float member of the LiteralKind enum.
+  */
   Float: "float",
+  /**
+  * Represents the Bool member of the LiteralKind enum.
+  */
   Bool: "bool",
+  /**
+  * Represents the Object member of the LiteralKind enum.
+  */
   Object: "object",
+  /**
+  * Represents the Array member of the LiteralKind enum.
+  */
   Array: "array",
+  /**
+  * Returns every declared LiteralKind value in definition order.
+  */
   values() {
     return [
       "string",
@@ -105,26 +144,53 @@ var LiteralKind = {
       "array"
     ];
   },
+  /**
+  * Parses a JSON string into a validated and hydrated LiteralKind value.
+  */
   parse(json) {
     const input = _vdl.parseJson(json);
     const error = LiteralKind.validate(input);
     if (error !== null) throw new Error(error);
     return LiteralKind.hydrate(input);
   },
+  /**
+  * Performs structural enum validation only (membership in LiteralKind); it does not enforce business rules.
+  */
   validate(input, path = "LiteralKind") {
     if (!_vdl.arrayIncludes(LiteralKind.values(), input)) return `${path}: invalid value "${String(input)}" for LiteralKind enum`;
     return null;
   },
+  /**
+  * Hydrates a validated LiteralKind value. Enums return the input unchanged to keep the generated API uniform.
+  */
   hydrate(input) {
     return input;
   }
 };
 var PrimitiveType = {
+  /**
+  * Represents the String member of the PrimitiveType enum.
+  */
   String: "string",
+  /**
+  * Represents the Int member of the PrimitiveType enum.
+  */
   Int: "int",
+  /**
+  * Represents the Float member of the PrimitiveType enum.
+  */
   Float: "float",
+  /**
+  * Represents the Bool member of the PrimitiveType enum.
+  */
   Bool: "bool",
+  /**
+  * Represents the Datetime member of the PrimitiveType enum.
+  */
   Datetime: "datetime",
+  /**
+  * Returns every declared PrimitiveType value in definition order.
+  */
   values() {
     return [
       "string",
@@ -134,27 +200,57 @@ var PrimitiveType = {
       "datetime"
     ];
   },
+  /**
+  * Parses a JSON string into a validated and hydrated PrimitiveType value.
+  */
   parse(json) {
     const input = _vdl.parseJson(json);
     const error = PrimitiveType.validate(input);
     if (error !== null) throw new Error(error);
     return PrimitiveType.hydrate(input);
   },
+  /**
+  * Performs structural enum validation only (membership in PrimitiveType); it does not enforce business rules.
+  */
   validate(input, path = "PrimitiveType") {
     if (!_vdl.arrayIncludes(PrimitiveType.values(), input)) return `${path}: invalid value "${String(input)}" for PrimitiveType enum`;
     return null;
   },
+  /**
+  * Hydrates a validated PrimitiveType value. Enums return the input unchanged to keep the generated API uniform.
+  */
   hydrate(input) {
     return input;
   }
 };
 var TypeKind = {
+  /**
+  * Represents the Primitive member of the TypeKind enum.
+  */
   Primitive: "primitive",
+  /**
+  * Represents the Type member of the TypeKind enum.
+  */
   Type: "type",
+  /**
+  * Represents the Enum member of the TypeKind enum.
+  */
   Enum: "enum",
+  /**
+  * Represents the Array member of the TypeKind enum.
+  */
   Array: "array",
+  /**
+  * Represents the Map member of the TypeKind enum.
+  */
   Map: "map",
+  /**
+  * Represents the Object member of the TypeKind enum.
+  */
   Object: "object",
+  /**
+  * Returns every declared TypeKind value in definition order.
+  */
   values() {
     return [
       "primitive",
@@ -165,21 +261,33 @@ var TypeKind = {
       "object"
     ];
   },
+  /**
+  * Parses a JSON string into a validated and hydrated TypeKind value.
+  */
   parse(json) {
     const input = _vdl.parseJson(json);
     const error = TypeKind.validate(input);
     if (error !== null) throw new Error(error);
     return TypeKind.hydrate(input);
   },
+  /**
+  * Performs structural enum validation only (membership in TypeKind); it does not enforce business rules.
+  */
   validate(input, path = "TypeKind") {
     if (!_vdl.arrayIncludes(TypeKind.values(), input)) return `${path}: invalid value "${String(input)}" for TypeKind enum`;
     return null;
   },
+  /**
+  * Hydrates a validated TypeKind value. Enums return the input unchanged to keep the generated API uniform.
+  */
   hydrate(input) {
     return input;
   }
 };
 var _vdl = {
+  /**
+  * Parses JSON text and wraps syntax failures in a stable generated error message.
+  */
   parseJson(json) {
     try {
       return JSON.parse(json);
@@ -188,6 +296,9 @@ var _vdl = {
       throw new Error(`Invalid JSON input: ${message}`);
     }
   },
+  /**
+  * Checks whether an array contains a value using strict equality.
+  */
   arrayIncludes(values, value) {
     for (let index = 0; index < values.length; index += 1) if (values[index] === value) return true;
     return false;
@@ -196,12 +307,18 @@ var _vdl = {
 
 // node_modules/@varavel/vdl-plugin-sdk/dist/core/types/types.js
 var Annotation = {
+  /**
+  * Parses a JSON string into a validated and hydrated Annotation value.
+  */
   parse(json) {
     const input = _vdl2.parseJson(json);
     const error = Annotation.validate(input);
     if (error !== null) throw new Error(error);
     return Annotation.hydrate(input);
   },
+  /**
+  * Performs structural validation for Annotation (required field presence and basic type shape only); it does not enforce business rules.
+  */
   validate(input, path = "Annotation") {
     if (!_vdl2.isRecord(input)) return `${path}: expected object, got ${_vdl2.describeValue(input)}`;
     const record0 = input;
@@ -221,6 +338,9 @@ var Annotation = {
     }
     return null;
   },
+  /**
+  * Hydrates a validated Annotation value into its runtime representation.
+  */
   hydrate(input) {
     return _vdl2.withOptional({
       position: Position.hydrate(input.position),
@@ -229,12 +349,18 @@ var Annotation = {
   }
 };
 var ConstantDef = {
+  /**
+  * Parses a JSON string into a validated and hydrated ConstantDef value.
+  */
   parse(json) {
     const input = _vdl2.parseJson(json);
     const error = ConstantDef.validate(input);
     if (error !== null) throw new Error(error);
     return ConstantDef.hydrate(input);
   },
+  /**
+  * Performs structural validation for ConstantDef (required field presence and basic type shape only); it does not enforce business rules.
+  */
   validate(input, path = "ConstantDef") {
     if (!_vdl2.isRecord(input)) return `${path}: expected object, got ${_vdl2.describeValue(input)}`;
     const record0 = input;
@@ -269,6 +395,9 @@ var ConstantDef = {
     }
     return null;
   },
+  /**
+  * Hydrates a validated ConstantDef value into its runtime representation.
+  */
   hydrate(input) {
     return _vdl2.withOptional({
       position: Position.hydrate(input.position),
@@ -279,12 +408,18 @@ var ConstantDef = {
   }
 };
 var EnumDef = {
+  /**
+  * Parses a JSON string into a validated and hydrated EnumDef value.
+  */
   parse(json) {
     const input = _vdl2.parseJson(json);
     const error = EnumDef.validate(input);
     if (error !== null) throw new Error(error);
     return EnumDef.hydrate(input);
   },
+  /**
+  * Performs structural validation for EnumDef (required field presence and basic type shape only); it does not enforce business rules.
+  */
   validate(input, path = "EnumDef") {
     if (!_vdl2.isRecord(input)) return `${path}: expected object, got ${_vdl2.describeValue(input)}`;
     const record0 = input;
@@ -329,6 +464,9 @@ var EnumDef = {
     }
     return null;
   },
+  /**
+  * Hydrates a validated EnumDef value into its runtime representation.
+  */
   hydrate(input) {
     return _vdl2.withOptional({
       position: Position.hydrate(input.position),
@@ -340,12 +478,18 @@ var EnumDef = {
   }
 };
 var EnumMember = {
+  /**
+  * Parses a JSON string into a validated and hydrated EnumMember value.
+  */
   parse(json) {
     const input = _vdl2.parseJson(json);
     const error = EnumMember.validate(input);
     if (error !== null) throw new Error(error);
     return EnumMember.hydrate(input);
   },
+  /**
+  * Performs structural validation for EnumMember (required field presence and basic type shape only); it does not enforce business rules.
+  */
   validate(input, path = "EnumMember") {
     if (!_vdl2.isRecord(input)) return `${path}: expected object, got ${_vdl2.describeValue(input)}`;
     const record0 = input;
@@ -380,6 +524,9 @@ var EnumMember = {
     }
     return null;
   },
+  /**
+  * Hydrates a validated EnumMember value into its runtime representation.
+  */
   hydrate(input) {
     return _vdl2.withOptional({
       position: Position.hydrate(input.position),
@@ -390,12 +537,18 @@ var EnumMember = {
   }
 };
 var Field = {
+  /**
+  * Parses a JSON string into a validated and hydrated Field value.
+  */
   parse(json) {
     const input = _vdl2.parseJson(json);
     const error = Field.validate(input);
     if (error !== null) throw new Error(error);
     return Field.hydrate(input);
   },
+  /**
+  * Performs structural validation for Field (required field presence and basic type shape only); it does not enforce business rules.
+  */
   validate(input, path = "Field") {
     if (!_vdl2.isRecord(input)) return `${path}: expected object, got ${_vdl2.describeValue(input)}`;
     const record0 = input;
@@ -433,6 +586,9 @@ var Field = {
     }
     return null;
   },
+  /**
+  * Hydrates a validated Field value into its runtime representation.
+  */
   hydrate(input) {
     return _vdl2.withOptional({
       position: Position.hydrate(input.position),
@@ -444,12 +600,18 @@ var Field = {
   }
 };
 var IrSchema = {
+  /**
+  * Parses a JSON string into a validated and hydrated IrSchema value.
+  */
   parse(json) {
     const input = _vdl2.parseJson(json);
     const error = IrSchema.validate(input);
     if (error !== null) throw new Error(error);
     return IrSchema.hydrate(input);
   },
+  /**
+  * Performs structural validation for IrSchema (required field presence and basic type shape only); it does not enforce business rules.
+  */
   validate(input, path = "IrSchema") {
     if (!_vdl2.isRecord(input)) return `${path}: expected object, got ${_vdl2.describeValue(input)}`;
     const record0 = input;
@@ -498,6 +660,9 @@ var IrSchema = {
     }
     return null;
   },
+  /**
+  * Hydrates a validated IrSchema value into its runtime representation.
+  */
   hydrate(input) {
     return {
       entryPoint: input.entryPoint,
@@ -509,12 +674,18 @@ var IrSchema = {
   }
 };
 var LiteralValue = {
+  /**
+  * Parses a JSON string into a validated and hydrated LiteralValue value.
+  */
   parse(json) {
     const input = _vdl2.parseJson(json);
     const error = LiteralValue.validate(input);
     if (error !== null) throw new Error(error);
     return LiteralValue.hydrate(input);
   },
+  /**
+  * Performs structural validation for LiteralValue (required field presence and basic type shape only); it does not enforce business rules.
+  */
   validate(input, path = "LiteralValue") {
     if (!_vdl2.isRecord(input)) return `${path}: expected object, got ${_vdl2.describeValue(input)}`;
     const record0 = input;
@@ -570,6 +741,9 @@ var LiteralValue = {
     }
     return null;
   },
+  /**
+  * Hydrates a validated LiteralValue value into its runtime representation.
+  */
   hydrate(input) {
     return _vdl2.withOptional(_vdl2.withOptional(_vdl2.withOptional(_vdl2.withOptional(_vdl2.withOptional(_vdl2.withOptional({
       position: Position.hydrate(input.position),
@@ -578,12 +752,18 @@ var LiteralValue = {
   }
 };
 var ObjectEntry = {
+  /**
+  * Parses a JSON string into a validated and hydrated ObjectEntry value.
+  */
   parse(json) {
     const input = _vdl2.parseJson(json);
     const error = ObjectEntry.validate(input);
     if (error !== null) throw new Error(error);
     return ObjectEntry.hydrate(input);
   },
+  /**
+  * Performs structural validation for ObjectEntry (required field presence and basic type shape only); it does not enforce business rules.
+  */
   validate(input, path = "ObjectEntry") {
     if (!_vdl2.isRecord(input)) return `${path}: expected object, got ${_vdl2.describeValue(input)}`;
     const record0 = input;
@@ -604,6 +784,9 @@ var ObjectEntry = {
     }
     return null;
   },
+  /**
+  * Hydrates a validated ObjectEntry value into its runtime representation.
+  */
   hydrate(input) {
     return {
       position: Position.hydrate(input.position),
@@ -613,12 +796,18 @@ var ObjectEntry = {
   }
 };
 var Position = {
+  /**
+  * Parses a JSON string into a validated and hydrated Position value.
+  */
   parse(json) {
     const input = _vdl2.parseJson(json);
     const error = Position.validate(input);
     if (error !== null) throw new Error(error);
     return Position.hydrate(input);
   },
+  /**
+  * Performs structural validation for Position (required field presence and basic type shape only); it does not enforce business rules.
+  */
   validate(input, path = "Position") {
     if (!_vdl2.isRecord(input)) return `${path}: expected object, got ${_vdl2.describeValue(input)}`;
     const record0 = input;
@@ -633,6 +822,9 @@ var Position = {
     if (typeof record0["column"] !== "number" || !Number.isFinite(record0["column"])) return `${fieldPath0_2}: expected number, got ${_vdl2.describeValue(record0["column"])}`;
     return null;
   },
+  /**
+  * Hydrates a validated Position value into its runtime representation.
+  */
   hydrate(input) {
     return {
       file: input.file,
@@ -642,12 +834,18 @@ var Position = {
   }
 };
 var TopLevelDoc = {
+  /**
+  * Parses a JSON string into a validated and hydrated TopLevelDoc value.
+  */
   parse(json) {
     const input = _vdl2.parseJson(json);
     const error = TopLevelDoc.validate(input);
     if (error !== null) throw new Error(error);
     return TopLevelDoc.hydrate(input);
   },
+  /**
+  * Performs structural validation for TopLevelDoc (required field presence and basic type shape only); it does not enforce business rules.
+  */
   validate(input, path = "TopLevelDoc") {
     if (!_vdl2.isRecord(input)) return `${path}: expected object, got ${_vdl2.describeValue(input)}`;
     const record0 = input;
@@ -662,6 +860,9 @@ var TopLevelDoc = {
     if (typeof record0["content"] !== "string") return `${fieldPath0_1}: expected string, got ${_vdl2.describeValue(record0["content"])}`;
     return null;
   },
+  /**
+  * Hydrates a validated TopLevelDoc value into its runtime representation.
+  */
   hydrate(input) {
     return {
       position: Position.hydrate(input.position),
@@ -670,12 +871,18 @@ var TopLevelDoc = {
   }
 };
 var TypeDef = {
+  /**
+  * Parses a JSON string into a validated and hydrated TypeDef value.
+  */
   parse(json) {
     const input = _vdl2.parseJson(json);
     const error = TypeDef.validate(input);
     if (error !== null) throw new Error(error);
     return TypeDef.hydrate(input);
   },
+  /**
+  * Performs structural validation for TypeDef (required field presence and basic type shape only); it does not enforce business rules.
+  */
   validate(input, path = "TypeDef") {
     if (!_vdl2.isRecord(input)) return `${path}: expected object, got ${_vdl2.describeValue(input)}`;
     const record0 = input;
@@ -710,6 +917,9 @@ var TypeDef = {
     }
     return null;
   },
+  /**
+  * Hydrates a validated TypeDef value into its runtime representation.
+  */
   hydrate(input) {
     return _vdl2.withOptional({
       position: Position.hydrate(input.position),
@@ -720,12 +930,18 @@ var TypeDef = {
   }
 };
 var TypeRef = {
+  /**
+  * Parses a JSON string into a validated and hydrated TypeRef value.
+  */
   parse(json) {
     const input = _vdl2.parseJson(json);
     const error = TypeRef.validate(input);
     if (error !== null) throw new Error(error);
     return TypeRef.hydrate(input);
   },
+  /**
+  * Performs structural validation for TypeRef (required field presence and basic type shape only); it does not enforce business rules.
+  */
   validate(input, path = "TypeRef") {
     if (!_vdl2.isRecord(input)) return `${path}: expected object, got ${_vdl2.describeValue(input)}`;
     const record0 = input;
@@ -780,11 +996,17 @@ var TypeRef = {
     }
     return null;
   },
+  /**
+  * Hydrates a validated TypeRef value into its runtime representation.
+  */
   hydrate(input) {
     return _vdl2.withOptional(_vdl2.withOptional(_vdl2.withOptional(_vdl2.withOptional(_vdl2.withOptional(_vdl2.withOptional(_vdl2.withOptional(_vdl2.withOptional({ kind: TypeKind.hydrate(input.kind) }, "primitiveName", input.primitiveName === void 0 ? void 0 : PrimitiveType.hydrate(input.primitiveName)), "typeName", input.typeName === void 0 ? void 0 : input.typeName), "enumName", input.enumName === void 0 ? void 0 : input.enumName), "enumType", input.enumType === void 0 ? void 0 : EnumValueType.hydrate(input.enumType)), "arrayType", input.arrayType === void 0 ? void 0 : TypeRef.hydrate(input.arrayType)), "arrayDims", input.arrayDims === void 0 ? void 0 : input.arrayDims), "mapType", input.mapType === void 0 ? void 0 : TypeRef.hydrate(input.mapType)), "objectFields", input.objectFields === void 0 ? void 0 : input.objectFields.map((item1) => Field.hydrate(item1)));
   }
 };
 var _vdl2 = {
+  /**
+  * Parses JSON text and wraps syntax failures in a stable generated error message.
+  */
   parseJson(json) {
     try {
       return JSON.parse(json);
@@ -793,6 +1015,9 @@ var _vdl2 = {
       throw new Error(`Invalid JSON input: ${message}`);
     }
   },
+  /**
+  * Returns own enumerable entries from a record in insertion order.
+  */
   recordEntries(record) {
     const entries = [];
     for (const key in record) if (Object.prototype.hasOwnProperty.call(record, key)) {
@@ -801,6 +1026,9 @@ var _vdl2 = {
     }
     return entries;
   },
+  /**
+  * Creates a new record by mapping every own enumerable value.
+  */
   mapRecord(record, mapValue) {
     const output = {};
     for (const key in record) if (Object.prototype.hasOwnProperty.call(record, key)) {
@@ -809,28 +1037,46 @@ var _vdl2 = {
     }
     return output;
   },
+  /**
+  * Adds an optional property only when the value is defined.
+  */
   withOptional(record, key, value) {
     const mutable = record;
     if (value !== void 0) mutable[key] = value;
     return record;
   },
+  /**
+  * Checks whether a value can be validated as a plain object record.
+  */
   isRecord(value) {
     return typeof value === "object" && value !== null && !Array.isArray(value) && !(value instanceof Date);
   },
+  /**
+  * Checks whether a record defines a property directly on the current object.
+  */
   hasOwn(record, key) {
     return Object.prototype.hasOwnProperty.call(record, key);
   },
+  /**
+  * Describes an input value using the categories reported by generated validation errors.
+  */
   describeValue(value) {
     if (value === null) return "null";
     if (Array.isArray(value)) return "array";
     if (value instanceof Date) return "Date";
     return typeof value;
   },
+  /**
+  * Checks whether an input can be hydrated into a valid Date instance.
+  */
   isValidDateInput(value) {
     if (value instanceof Date) return !Number.isNaN(value.getTime());
     if (typeof value !== "string") return false;
     return !Number.isNaN(new Date(value).getTime());
   },
+  /**
+  * Hydrates a string or Date input into a fresh Date instance.
+  */
   hydrateDateInput(value) {
     return value instanceof Date ? new Date(value.getTime()) : new Date(value);
   }
@@ -977,6 +1223,37 @@ function getAnnotationArg(annotations, name) {
 }
 __name(getAnnotationArg, "getAnnotationArg");
 
+// node_modules/@varavel/vdl-plugin-sdk/dist/utils/ir/unwrap-literal.js
+function unwrapLiteral(value) {
+  return unwrapLiteralValue(value);
+}
+__name(unwrapLiteral, "unwrapLiteral");
+function unwrapLiteralValue(value) {
+  switch (value.kind) {
+    case "string":
+      return value.stringValue;
+    case "int":
+      return value.intValue;
+    case "float":
+      return value.floatValue;
+    case "bool":
+      return value.boolValue;
+    case "object": {
+      var _value$objectEntries;
+      const resolvedObject = {};
+      const entries = (_value$objectEntries = value.objectEntries) !== null && _value$objectEntries !== void 0 ? _value$objectEntries : [];
+      for (const entry of entries) resolvedObject[entry.key] = unwrapLiteralValue(entry.value);
+      return resolvedObject;
+    }
+    case "array":
+      var _value$arrayItems;
+      return ((_value$arrayItems = value.arrayItems) !== null && _value$arrayItems !== void 0 ? _value$arrayItems : []).map((item) => unwrapLiteralValue(item));
+    default:
+      return null;
+  }
+}
+__name(unwrapLiteralValue, "unwrapLiteralValue");
+
 // node_modules/@varavel/vdl-plugin-sdk/dist/utils/strings/words.js
 var ACRONYM_TO_CAPITALIZED_WORD_BOUNDARY_RE = /([A-Z]+)([A-Z][a-z])/g;
 var LOWERCASE_OR_DIGIT_TO_UPPERCASE_BOUNDARY_RE = /([a-z0-9])([A-Z])/g;
@@ -1085,37 +1362,6 @@ function copyPosition(position) {
   };
 }
 __name(copyPosition, "copyPosition");
-
-// node_modules/@varavel/vdl-plugin-sdk/dist/utils/ir/unwrap-literal.js
-function unwrapLiteral(value) {
-  return unwrapLiteralValue(value);
-}
-__name(unwrapLiteral, "unwrapLiteral");
-function unwrapLiteralValue(value) {
-  switch (value.kind) {
-    case "string":
-      return value.stringValue;
-    case "int":
-      return value.intValue;
-    case "float":
-      return value.floatValue;
-    case "bool":
-      return value.boolValue;
-    case "object": {
-      var _value$objectEntries;
-      const resolvedObject = {};
-      const entries = (_value$objectEntries = value.objectEntries) !== null && _value$objectEntries !== void 0 ? _value$objectEntries : [];
-      for (const entry of entries) resolvedObject[entry.key] = unwrapLiteralValue(entry.value);
-      return resolvedObject;
-    }
-    case "array":
-      var _value$arrayItems;
-      return ((_value$arrayItems = value.arrayItems) !== null && _value$arrayItems !== void 0 ? _value$arrayItems : []).map((item) => unwrapLiteralValue(item));
-    default:
-      return null;
-  }
-}
-__name(unwrapLiteralValue, "unwrapLiteralValue");
 
 // src/shared/comments.ts
 var DEFAULT_DEPRECATED_MESSAGE = "This symbol is deprecated and should not be used in new code.";
